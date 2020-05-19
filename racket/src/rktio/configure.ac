@@ -98,7 +98,7 @@ case "$host_os" in
     ;;
   *mingw*)
     skip_iconv_check=yes
-    ;;    
+    ;;
   cygwin*)
     ;;
   darwin*)
@@ -123,6 +123,11 @@ case "$host_os" in
     ;;
   nto-qnx*)
     use_flag_pthread=no
+    ;;
+  haiku*)
+	use_flag_pthread=no
+	enable_pthread_by_default=yes
+    LIBS="$LIBS -lnetwork"
     ;;
   *)
     ;;

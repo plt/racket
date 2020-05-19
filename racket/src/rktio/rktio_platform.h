@@ -83,6 +83,17 @@
 
 #endif
 
+  /************** Haiku ****************/
+
+#if defined(__HAIKU__)
+
+# define DIRENT_NO_NAMLEN
+# define RKTIO_USE_FCNTL_AND_FORK_FOR_FILE_LOCKS
+# define RKTIO_USE_PTHREADS
+//# define MZ_PRECISE_GC
+
+#endif
+
   /************** SGI/IRIX ****************/
 
 #if  (defined(mips) || defined(__mips)) \
