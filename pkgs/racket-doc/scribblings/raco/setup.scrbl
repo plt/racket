@@ -615,6 +615,13 @@ Optional @filepath{info.rkt} fields trigger additional actions by
    Libraries using category symbols not listed are added to the 
    Miscellaneous Libraries category on the documentation index page.
 
+   This example lists the documentation in the 'Slideshow Libraries' category:
+   
+   @racketblock[
+   (define scribblings
+     '(("ppict.scrbl" () ("Slideshow Libraries"))))
+   ]
+
    If the category list has a second element, it must be a real number
    that designates the manual's sorting position with the category;
    manuals with the same sorting position are ordered
