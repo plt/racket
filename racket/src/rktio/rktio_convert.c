@@ -246,7 +246,7 @@ typedef enum {
 static void init_icu() { }
 #else
 # ifndef RKTIO_ICU_DLL
-#  define icu_init_status ICU_READY
+#  define icu_init_status RKTIO_ICU_READY
 static void init_icu() { }
 # else
 typedef UConverter (*ucnv_open_proc_t)(const char *converterName, UErrorCode *err);
@@ -710,8 +710,8 @@ static intptr_t rktio_icu_convert(rktio_t *rktio,
   return RKTIO_CONVERT_ERROR;
 #else
   UErrorCode errorCode = U_ZERO_ERROR;
-  if ((NULL == inbuf) || (NULL == *inbuf)) {
-    if ((NULL == outbuf) || (NULL == *outbuf)) {
+  if ((NULL == in) || (NULL == *in)) {
+    if ((NULL == out) || (NULL == *out)) {
       /* Set cvt's conversion state to the initial state. */
       ucnv_reset(cvt->sourceCnv);
       ucnv_reset(cvt->targetCnv);
@@ -719,23 +719,23 @@ static intptr_t rktio_icu_convert(rktio_t *rktio,
       cvt->pivotTarget = &cvt->buf[0];
       return 0;
     } else {
-      /* outbuf is not NULL and *outbuf is not NULL */
+      /* out is not NULL and *out is not NULL */
       /* Attempt to set cvt's conversion state to the initial state.
-       * Store a corresponding shift sequence at *outbuf.
-       * Write at most *outbytesleft bytes, starting at *outbuf.
+       * Store a corresponding shift sequence at *out.
+       * Write at most *out_left bytes, starting at *out.
        * If no more room for this reset sequence,
        * set RKTIO_ERROR_CONVERT_NOT_ENOUGH_SPACE (E2BIG) and return RKTIO_CONVERT_ERROR.
-       * Otherwise, increment *outbuf and decrement *outbytesleft
+       * Otherwise, increment *out and decrement *out_left
        * by the number of bytes written.
        */
       const char *source = "";
-      char *target = *outbuf;
+      char *target = *out;
       ucnv_convertEx(cvt->targetCnv,
                      cvt->sourceCnv,
                      &target,
-                     target + *outbytesleft,
+                     target + *out_left,
                      &source,
-                     source, /* no inbytesleft */
+                     source, /* no in_left */
                      cvt->buf,
                      &cvt->pivotSource,
                      &cvt->pivotTarget,
@@ -743,8 +743,8 @@ static intptr_t rktio_icu_convert(rktio_t *rktio,
                      0, /* reset */
                      1, /* flush */
                      &errorCode);
-      *outbytesleft = *outbytesleft - (target - *outbuf);
-      *outbuf = target;
+      *out_left = *out_left - (target - *out);
+      *out = target;
       if (U_SUCCESS(errorCode)) {
         return 0;
       } else {
@@ -755,16 +755,16 @@ static intptr_t rktio_icu_convert(rktio_t *rktio,
       };
     };
   } else {
-    /* Main case: inbuf is not NULL and *inbuf is not NULL */
-    char *source = *inbuf;
-    char *target = *outbuf;
+    /* Main case: in is not NULL and *in is not NULL */
+    char *source = *in;
+    char *target = *out;
     size_t ret = 0;
     ucnv_convertEx(cvt->targetCnv,
                    cvt->sourceCnv,
                    &target,
-                   target + *outbytesleft,
+                   target + *out_left,
                    (const char **) &source, /* TODO: double-check cast */
-                   source + *inbytesleft,
+                   source + *in_left,
                    cvt->buf,
                    &cvt->pivotSource,
                    &cvt->pivotTarget,
@@ -772,11 +772,11 @@ static intptr_t rktio_icu_convert(rktio_t *rktio,
                    0, /* reset */
                    0, /* flush */
                    &errorCode);
-    ret = source - *inbuf;
-    *inbytesleft = *inbytesleft - (ret);
-    *inbuf = source;
-    *outbytesleft = *outbytesleft - (target - *outbuf);
-    *outbuf = target;
+    ret = source - *in;
+    *in_left = *in_left - (ret);
+    *in = source;
+    *out_left = *out_left - (target - *out);
+    *out = target;
     if (U_SUCCESS(errorCode))
       return (intptr_t)ret;
     if (U_BUFFER_OVERFLOW_ERROR == errorCode)
