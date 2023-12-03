@@ -1206,7 +1206,7 @@ intptr_t rktio_convert(rktio_t *rktio,
                        rktio_converter_t *cvt,
                        char **in, intptr_t *in_left,
                        char **out, intptr_t *out_left);
-/* Converts some bytes, following the icon protocol: each consumed by
+/* Converts some bytes, following the iconv protocol: each consumed by
    increments `*in` and decrements `*in_left`, and each produced by
    increments `*out` and decrements `*out_left`. In case of an error,
    the result is `RKTIO_CONVERT_ERROR` and the last error is set to
