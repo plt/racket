@@ -618,6 +618,11 @@ static void rktio_iconv_converter_close(rktio_t *rktio, rktio_iconv_converter_t 
   free(cvt);
 }
 
+static void rktio_iconv_convert_reset(rktio_t *rktio, rktio_iconv_converter_t *cvt)
+{
+  (void)iconv(cvt->cd, NULL, NULL, NULL, NULL);
+}
+
 static intptr_t rktio_iconv_convert(rktio_t *rktio,
                                     rktio_iconv_converter_t *cvt,
                                     char **in, intptr_t *in_left,
@@ -700,6 +705,14 @@ static void rktio_icu_converter_close(rktio_t *rktio, rktio_icu_converter_t *cvt
 #endif
 }
 
+static void rktio_icu_convert_reset(rktio_t *rktio, rktio_icu_converter_t *cvt)
+{
+  ucnv_reset(cvt->sourceCnv);
+  ucnv_reset(cvt->targetCnv);
+  cvt->pivotSource = &cvt->buf[0];
+  cvt->pivotTarget = &cvt->buf[0];
+}
+
 static intptr_t rktio_icu_convert(rktio_t *rktio,
                                   rktio_icu_converter_t *cvt,
                                   char **in, intptr_t *in_left,
@@ -713,10 +726,7 @@ static intptr_t rktio_icu_convert(rktio_t *rktio,
   if ((NULL == in) || (NULL == *in)) {
     if ((NULL == out) || (NULL == *out)) {
       /* Set cvt's conversion state to the initial state. */
-      ucnv_reset(cvt->sourceCnv);
-      ucnv_reset(cvt->targetCnv);
-      cvt->pivotSource = &cvt->buf[0];
-      cvt->pivotTarget = &cvt->buf[0];
+      rktio_icu_convert_reset(rktio, cvt);
       return 0;
     } else {
       /* out is not NULL and *out is not NULL */
@@ -748,9 +758,9 @@ static intptr_t rktio_icu_convert(rktio_t *rktio,
       if (U_SUCCESS(errorCode)) {
         return 0;
       } else {
-        ICUICONV_SET_ERRNO(U_BUFFER_OVERFLOW_ERROR == errorCode
-                           ? E2BIG
-                           : EBADMSG); /* ? */
+        set_racket_error((U_BUFFER_OVERFLOW_ERROR == errorCode)
+                         ? RKTIO_ERROR_CONVERT_NOT_ENOUGH_SPACE
+                         : RKTIO_ERROR_CONVERT_OTHER); /* ? */
         return RKTIO_CONVERT_ERROR;
       };
     };
@@ -806,7 +816,7 @@ rktio_converter_t *rktio_converter_open(rktio_t *rktio,
 
 void rktio_converter_close(rktio_t *rktio, rktio_converter_t *cvt)
 {
-  if (cvt->tag.is_iconv)
+  if (cvt->is_iconv)
     rktio_iconv_converter_close(rktio, (rktio_iconv_converter_t *) cvt);
   else
     rktio_icu_converter_close(rktio, (rktio_icu_converter_t *) cvt);
@@ -817,7 +827,7 @@ intptr_t rktio_convert(rktio_t *rktio,
                        char **in, intptr_t *in_left,
                        char **out, intptr_t *out_left)
 {
-  if (cvt->tag.is_iconv)
+  if (cvt->is_iconv)
     return rktio_iconv_convert(rktio, (rktio_iconv_converter_t *) cvt, in, in_left, out, out_left);
   else
     return rktio_icu_convert(rktio, (rktio_icu_converter_t *) cvt, in, in_left, out, out_left);
@@ -848,7 +858,10 @@ rktio_convert_result_t *rktio_convert_in(rktio_t *rktio,
 
 void rktio_convert_reset(rktio_t *rktio, rktio_converter_t *cvt)
 {
-  (void)iconv(cvt->cd, NULL, NULL, NULL, NULL);
+  if (cvt->is_iconv)
+    rktio_iconv_convert_reset(rktio, (rktio_iconv_converter_t *) cvt);
+  else
+    rktio_icu_convert_reset(rktio, (rktio_icu_converter_t *) cvt);
 }
 
 /*============================================================*/
