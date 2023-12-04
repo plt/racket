@@ -721,7 +721,7 @@ static intptr_t rktio_icu_convert(rktio_t *rktio,
                                   char **out, intptr_t *out_left)
 {
 #ifndef RKTIO_HAVE_ICU
-  set_racket_error(rktio, RKTIO_ERROR_UNSUPPORTED);
+  set_racket_error(RKTIO_ERROR_UNSUPPORTED);
   return RKTIO_CONVERT_ERROR;
 #else
   UErrorCode errorCode = U_ZERO_ERROR;
