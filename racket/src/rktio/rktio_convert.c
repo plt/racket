@@ -20,7 +20,7 @@
 # include <CoreFoundation/CFLocale.h>
 #endif
 
-#ifndef RKTIO_NO_ICU
+#ifdef RKTIO_HAVE_ICU
 # ifdef RKTIO_SYSTEM_WINDOWS
 #  include <icu.h> /* see comment on init_icu() for why not <icucommon.h> */
 # else
@@ -241,7 +241,7 @@ typedef enum {
   RKTIO_ICU_UNAVAILABLE
 } icu_init_status_t;
 
-#ifdef RKTIO_NO_ICU
+#ifndef RKTIO_HAVE_ICU
 # define icu_init_status RKTIO_ICU_UNAVAILABLE
 static void init_icu() { }
 #else
@@ -576,7 +576,7 @@ typedef struct rktio_iconv_converter_t {
   iconv_t cd;
 } rktio_iconv_converter_t;
 
-#ifdef RKTIO_NO_ICU
+#ifndef RKTIO_HAVE_ICU
 typedef rktio_char16_t UChar;
 typedef intptr_t UConverter;
 #endif
@@ -657,7 +657,7 @@ static rktio_icu_converter_t *rktio_icu_converter_open(rktio_t *rktio,
                                                        const char *to_enc,
                                                        const char *from_enc)
 {
-#ifdef RKTIO_NO_ICU
+#ifndef RKTIO_HAVE_ICU
   set_racket_error(RKTIO_ERROR_UNSUPPORTED);
   return NULL;
 #else
@@ -698,7 +698,7 @@ static rktio_icu_converter_t *rktio_icu_converter_open(rktio_t *rktio,
 
 static void rktio_icu_converter_close(rktio_t *rktio, rktio_icu_converter_t *cvt)
 {
-#ifndef RKTIO_NO_ICU
+#ifdef RKTIO_HAVE_ICU
   ucnv_close(cvt->sourceCnv);
   ucnv_close(cvt->targetCnv);
   free(cvt);
@@ -707,10 +707,12 @@ static void rktio_icu_converter_close(rktio_t *rktio, rktio_icu_converter_t *cvt
 
 static void rktio_icu_convert_reset(rktio_t *rktio, rktio_icu_converter_t *cvt)
 {
+#ifdef RKTIO_HAVE_ICU
   ucnv_reset(cvt->sourceCnv);
   ucnv_reset(cvt->targetCnv);
   cvt->pivotSource = &cvt->buf[0];
   cvt->pivotTarget = &cvt->buf[0];
+#endif
 }
 
 static intptr_t rktio_icu_convert(rktio_t *rktio,
@@ -718,7 +720,7 @@ static intptr_t rktio_icu_convert(rktio_t *rktio,
                                   char **in, intptr_t *in_left,
                                   char **out, intptr_t *out_left)
 {
-#ifdef RKTIO_NO_ICU
+#ifndef RKTIO_HAVE_ICU
   set_racket_error(rktio, RKTIO_ERROR_UNSUPPORTED);
   return RKTIO_CONVERT_ERROR;
 #else

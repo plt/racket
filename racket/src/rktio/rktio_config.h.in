@@ -60,11 +60,11 @@ typedef unsigned long long rktio_uint64_t;
 
 /* In case iconv is not available: */
 #undef RKTIO_NO_ICONV
-#undef RKTIO_NO_ICU /* HACK HACK HACK for testing */
+#undef RKTIO_HAVE_ICU
+#undef RKTIO_ICU_DLL
 #ifdef RKTIO_SYSTEM_WINDOWS
+# define RKTIO_HAVE_ICU /* HACK should handle in configure */
 # define RKTIO_ICU_DLL
-/* #else */
-/* # define RKTIO_NO_ICU */
 #endif
 
 /* Fields of struct dirent */
