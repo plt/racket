@@ -62,10 +62,6 @@ typedef unsigned long long rktio_uint64_t;
 #undef RKTIO_NO_ICONV
 #undef RKTIO_HAVE_ICU
 #undef RKTIO_ICU_DLL
-#ifdef RKTIO_SYSTEM_WINDOWS
-# define RKTIO_HAVE_ICU /* HACK should handle in configure */
-# define RKTIO_ICU_DLL
-#endif
 
 /* Fields of struct dirent */
 #undef HAVE_DIRENT_NAMLEN
