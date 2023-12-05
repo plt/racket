@@ -18,7 +18,7 @@
 # it used to include C++ flags that we didn't want for Racket.
 # hence PREFLAGS, which is initialized to the original CPPFLAGS.
 
-AC_INIT([Racket])
+AC_INIT([Racket],[BC],[https://github.com/racket/racket],[racket],[https://racket-lang.org])
 AC_CONFIG_SRCDIR(src/bignum.c)
 AC_CONFIG_HEADERS([mzconfig.h])
 
@@ -216,6 +216,8 @@ show_explicitly_disabled "${enable_pthread}" "pthreads"
 show_explicitly_enabled "${enable_ffipoll}" "ffipoll"
 show_explicitly_enabled "${enable_oskit}" "OSKit"
 show_explicitly_enabled "${enable_smalloskit}" "OSKit small mode"
+
+m4_include(../ac/iconv_show.m4)
 
 show_explicitly_enabled "${enable_curses}" "curses"
 show_explicitly_disabled "${enable_curses}" "curses"
@@ -1345,6 +1347,18 @@ if test "${enable_iconv}" = "yes" ; then
   SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --enable-iconv"
 else
   SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --disable-iconv"
+fi
+# Make sure the --enable-icu result is propagated:
+if test "${enable_icu}" = "yes" ; then
+  SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --enable-icu"
+else
+  SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --disable-icu"
+fi
+# Make sure the --enable-icu-dll result is propagated:
+if test "${enable_icu_dll}" = "yes" ; then
+  SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --enable-icu-dll"
+else
+  SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --disable-icu-dll"
 fi
 
 if test -d "${srcdir}/foreign" && test "${enable_foreign}" = "yes" ; then

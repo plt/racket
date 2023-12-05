@@ -4,7 +4,8 @@
 # by autoconf (use `make-configure` in "../racket").            #
 #################################################################
 
-AC_INIT([rktio.h])
+AC_INIT([Racket],[rktio],[https://github.com/racket/racket],[racket],[https://racket-lang.org])
+AC_CONFIG_SRCDIR([rktio.h])
 AC_CONFIG_HEADERS([rktio_config.h])
 
 AC_CONFIG_AUX_DIR(../lt)
@@ -13,7 +14,7 @@ AC_CANONICAL_SYSTEM
 AC_ARG_ENABLE(shared,     [  --enable-shared         create shared libraries (ok, but not recommended)])
 AC_ARG_ENABLE(standalone, [  --enable-standalone     create a standalone shared library])
 AC_ARG_ENABLE(pthread,    [  --enable-pthread        link with pthreads (usually auto-enabled if needed)])
-AC_ARG_ENABLE(iconv,      [  --enable-iconv          use iconv (usually auto-enabled)])
+m4_include(../ac/iconv_arg.m4)
 AC_ARG_ENABLE(bigendian,  [  --enable-bigendian      assume "big" if endianness cannot be determined])
 
 if test "${enable_iconv}" = "" ; then
@@ -202,44 +203,8 @@ AC_TRY_LINK([#include <sys/types.h>
    have_getaddrinfo=no)
 AC_MSG_RESULT($have_getaddrinfo)
 
-iconv_lib_flag=""
-if test "${skip_iconv_check}" = "no" ; then
- if test "${enable_iconv}" = "yes" ; then
-  AC_CHECK_HEADER(iconv.h, enable_iconv=yes, enable_iconv=no)
-  if test "${enable_iconv}" = "yes" ; then  
-    # Does it all work, now?
-    AC_TRY_RUN(
-[   #include <iconv.h>]
-[   #include <langinfo.h>]
-    int main() {
-[     iconv_open("UTF-8", "UTF-8");]
-      return 0;
-    }, enable_iconv=yes, enable_iconv=no, enable_iconv=yes)
-    if test "${enable_iconv}" = "no" ; then  
-      # Try adding -liconv ?
-      #  We did not use AC_CHECK_LIB because iconv is sometimes macro-renamed
-      ORIG_LIBS="$LIBS"
-      LIBS="$LIBS -liconv"
-      AC_TRY_RUN(
-[     #include <iconv.h>]
-[     #include <langinfo.h>]
-      int main() {
-[     iconv_open("UTF-8", "UTF-8");]
-      return 0;
-      }, enable_iconv=yes, enable_iconv=no, enable_iconv=yes)
-      if test "${enable_iconv}" = "no" ; then
-        LIBS="$ORIG_LIBS"
-      else
-        iconv_lib_flag=" -liconv"      
-      fi
-    fi
-  fi
- fi
- [ msg="iconv is usable" ]
- AC_MSG_CHECKING($msg)
- iconv_usage_result="$enable_iconv$iconv_lib_flag"
- AC_MSG_RESULT($iconv_usage_result)
-fi
+m4_include(../ac/iconv.m4)
+
 if test "${enable_iconv}" = "no" ; then
   AC_DEFINE(RKTIO_NO_ICONV,1,[Do not use iconv])
 fi
@@ -252,6 +217,19 @@ if test "${enable_iconv}" = "yes" ; then
                have_codeset=yes,
               have_codeset=no)
   AC_MSG_RESULT($have_codeset)
+fi
+
+if test "${enable_icu}" = "yes" ; then
+  AC_DEFINE(RKTIO_HAVE_ICU,1,[Build support for iconv-via-ICU])
+fi
+if test "${enable_icu_dll}" = "yes" ; then
+  AC_DEFINE(RKTIO_ICU_DLL,1,[Dynamically load ICU])
+elif test "${icu_platform_windows}" = "no" ; then
+  icu_cflags=`pkg-config icu-uc --cflags 2> /dev/null`
+  if test "$?" != 0 ; then
+    AC_MSG_WARN([unable to infer CFLAGS for ICU via pkg-config])
+  fi
+  CFLAGS="${CFLAGS} ${icu_cflags}"
 fi
 
 [ msg="for mbsrtowcs" ]
