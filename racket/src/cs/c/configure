@@ -5603,7 +5603,7 @@ else
 fi
 
 
-  elif test "${enable_icu_dll" = "yes" ; then
+  elif test "${enable_icu_dll}" = "yes" ; then
     enable_icu=yes
   else
     enable_icu=no

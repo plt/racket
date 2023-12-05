@@ -45,7 +45,7 @@ esac
 if test "${enable_icu}" = "" ; then
   if test "${icu_platform_windows}" = "yes" ; then
     AC_CHECK_HEADER([icu.h], [enable_icu=yes], [enable_icu=no])
-  elif test "${enable_icu_dll" = "yes" ; then
+  elif test "${enable_icu_dll}" = "yes" ; then
     enable_icu=yes
   else
     enable_icu=no
