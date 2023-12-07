@@ -25,7 +25,7 @@ if %ENABLE_ICU_DLL%==yes set CPPFLAGS="%CPPFLAGS% /DRKTIO_ICU_DLL"
 
 copy /y "%SRCDIR%\buildmain.zuo" main.zuo > NUL
 echo srcdir=%SRCDIR% > Makefile
-echo "CPPFLAGS=%CPPFLAGS%" >> Makefile
+echo CPPFLAGS=%CPPFLAGS% >> Makefile
 echo CFLAGS=/Ox /GS- >> Makefile
 
 cl.exe /nologo /Fe: winfig.exe "%SRCDIR%\..\worksp\winfig.c"
