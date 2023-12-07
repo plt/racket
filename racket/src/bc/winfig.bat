@@ -30,3 +30,5 @@ echo CFLAGS=/Ox /GS- >> Makefile
 
 cl.exe /nologo /Fe: winfig.exe "%SRCDIR%\..\worksp\winfig.c"
 winfig.exe >> Makefile
+
+type Makefile
