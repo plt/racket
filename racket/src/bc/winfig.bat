@@ -20,8 +20,8 @@ if defined ARG (
   exit /B 1
 )
 
-if %ENABLE_ICU%==yes set CPPFLAGS="%CPPFLAGS% /DRKTIO_HAVE_ICU"
-if %ENABLE_ICU_DLL%==yes set CPPFLAGS="%CPPFLAGS% /DRKTIO_ICU_DLL"
+if %ENABLE_ICU%==yes set CPPFLAGS=%CPPFLAGS% /DRKTIO_HAVE_ICU
+if %ENABLE_ICU_DLL%==yes set CPPFLAGS=%CPPFLAGS% /DRKTIO_ICU_DLL
 
 copy /y "%SRCDIR%\buildmain.zuo" main.zuo > NUL
 echo srcdir=%SRCDIR% > Makefile
