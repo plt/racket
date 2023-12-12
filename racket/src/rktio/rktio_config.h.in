@@ -60,6 +60,8 @@ typedef unsigned long long rktio_uint64_t;
 
 /* In case iconv is not available: */
 #undef RKTIO_NO_ICONV
+#undef RKTIO_HAVE_ICU
+#undef RKTIO_ICU_DLL
 
 /* Fields of struct dirent */
 #undef HAVE_DIRENT_NAMLEN

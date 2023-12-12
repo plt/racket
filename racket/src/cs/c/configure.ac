@@ -4,7 +4,8 @@
 # by autoconf (use `make-configure` in "../../ac").             #
 #################################################################
 
-AC_INIT([embed-boot.rkt])
+AC_INIT([Racket],[CS],[https://github.com/racket/racket],[racket],[https://racket-lang.org])
+AC_CONFIG_SRCDIR([embed-boot.rkt])
 AC_CONFIG_HEADERS([cs_config.h])
 
 AC_CONFIG_AUX_DIR(../../lt)
@@ -96,8 +97,7 @@ show_explicitly_enabled "${enable_libz}" "Installed libz"
 show_explicitly_disabled "${enable_libz}" "Installed libz"
 show_explicitly_enabled "${enable_liblz4}" "Installed liblz4"
 show_explicitly_disabled "${enable_liblz4}" "Installed liblz4"
-show_explicitly_enabled "${enable_iconv}" "iconv"
-show_explicitly_disabled "${enable_iconv}" "iconv"
+m4_include(../ac/iconv_show.m4)
 show_explicitly_enabled "${enable_curses}" "curses"
 show_explicitly_disabled "${enable_curses}" "curses"
 show_explicitly_enabled "${enable_check}" "Extra checks"
@@ -632,21 +632,8 @@ AC_LANG_C
 
 m4_include(../ac/iconv.m4)
 if test "${enable_iconv}" = "no" ; then
-  AC_DEFINE(RKTIO_NO_ICONV,1,[Do not use iconv])
-  DISABLE_ICONV=yes
   add_iconv_lib=
 fi
-
-if test "${enable_iconv}" = "yes" ; then
-  AC_MSG_CHECKING([for nl_langinfo (CODESET)])
-  AC_TRY_LINK([#include <langinfo.h>],
-              [char *codeset = nl_langinfo (CODESET);],
-              AC_DEFINE(RKTIO_HAVE_CODESET,1,[Have nl_langinfo (CODESET)])
-               have_codeset=yes,
-              have_codeset=no)
-  AC_MSG_RESULT($have_codeset)
-fi
-
 if test "${add_iconv_lib}" != "" ; then
     LIBS="${LIBS} ${add_iconv_lib}"
 fi
@@ -794,6 +781,18 @@ if test "${enable_iconv}" = "yes" ; then
   SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --enable-iconv"
 else
   SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --disable-iconv"
+fi
+# Make sure the --enable-icu result is propagated:
+if test "${enable_icu}" = "yes" ; then
+  SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --enable-icu"
+else
+  SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --disable-icu"
+fi
+# Make sure the --enable-icu-dll result is propagated:
+if test "${enable_icu_dll}" = "yes" ; then
+  SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --enable-icu-dll"
+else
+  SUB_CONFIGURE_EXTRAS="$SUB_CONFIGURE_EXTRAS --disable-icu-dll"
 fi
 
 ############## libtool ################
