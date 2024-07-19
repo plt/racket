@@ -48,6 +48,9 @@
   (define (export-out-sym e)
     (syntax-e (export-out-id e)))
 
+  (define (raise-out-of-provide-error ignored stx)
+    (raise-syntax-error #f "illegal placement for `provide-spec`;\n valid positions include the argument to `provide`" stx))
+
   (define-values (prop:provide-pre-transformer provide-pre-transformer? provide-pre-transformer-get-proc)
     (make-struct-type-property 'provide-pre-transformer))
   
@@ -55,8 +58,10 @@
     (make-struct-type-property 'provide-transformer))
   
   (define-struct* pt (proc)
+    #:property prop:procedure raise-out-of-provide-error
     #:property prop:provide-transformer (lambda (t) (pt-proc t)))
   (define-struct* p+t (pre-proc proc)
+    #:property prop:procedure raise-out-of-provide-error
     #:property prop:provide-transformer (lambda (t) (p+t-proc t))
     #:property prop:provide-pre-transformer (lambda (t) (p+t-pre-proc t)))
   
@@ -68,6 +73,7 @@
       (make-p+t pre-proc proc)]))
   
   (define-struct* ppt (proc)
+    #:property prop:procedure raise-out-of-provide-error
     #:property prop:provide-pre-transformer (lambda (t) (ppt-proc t)))
   
   (define (make-provide-pre-transformer proc)

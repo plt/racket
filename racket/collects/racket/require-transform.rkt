@@ -61,7 +61,11 @@
   (define-values (prop:require-transformer require-transformer? require-transformer-get-proc)
     (make-struct-type-property 'require-transformer))
   
+  (define (raise-out-of-require-error ignored stx)
+    (raise-syntax-error #f "illegal placement for `require-spec`;\n valid positions include the argument to `require`" stx))
+
   (define-struct* rt (proc)
+    #:property prop:procedure raise-out-of-require-error
     #:property prop:require-transformer (lambda (t) (rt-proc t)))
   
   (define (make-require-transformer proc)
