@@ -414,6 +414,14 @@
 (define (put-impure-port url put-data [strings '()])
   (method-impure-port 'put url put-data strings))
 
+;; patch-pure-port : url bytes [x list (str)] -> in-port
+(define (patch-pure-port url patch-data [strings '()])
+  (method-pure-port 'patch url patch-data strings))
+
+;; patch-impure-port : url x bytes [x list (str)] -> in-port
+(define (patch-impure-port url patch-data [strings '()])
+  (method-impure-port 'patch url patch-data strings))
+
 ;; options-pure-port : url [x list (str)] -> in-port
 (define (options-pure-port url [strings '()])
   (method-pure-port 'options url #f strings))
@@ -446,11 +454,12 @@
            (file://get-pure-port url)]
           [else (url-error "Scheme ~a unsupported" scheme)])))
 
-;; http://metod-impure-port : symbol x url x union (str, #f) x list (str) -> in-port
+;; http://method-impure-port : symbol x url x union (str, #f) x list (str) -> in-port
 (define (http://method-impure-port method url data strings)
   (let* ([method (case method
                    [(get) "GET"] [(post) "POST"] [(head) "HEAD"]
-                   [(put) "PUT"] [(delete) "DELETE"] [(options) "OPTIONS"] 
+                   [(put) "PUT"] [(patch) "PATCH"] [(delete) "DELETE"]
+                   [(options) "OPTIONS"]
                    [else (url-error "unsupported method: ~a" method)])]
          [proxy (proxy-server-for (url-scheme url) (url-host url))]
          [hc (make-ports url proxy)]
@@ -490,6 +499,8 @@
  (delete-impure-port (->* (url?) ((listof string?)) input-port?))
  (put-pure-port (->* (url? (or/c false/c bytes?)) ((listof string?)) input-port?))
  (put-impure-port (->* (url? bytes?) ((listof string?)) input-port?))
+ (patch-pure-port (->* (url? (or/c false/c bytes?)) ((listof string?)) input-port?))
+ (patch-impure-port (->* (url? bytes?) ((listof string?)) input-port?))
  (options-pure-port (->* (url?) ((listof string?)) input-port?))
  (options-impure-port (->* (url?) ((listof string?)) input-port?))
  (display-pure-port (input-port? . -> . void?))

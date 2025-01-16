@@ -61,6 +61,10 @@
     (make-tester (lambda (url) (put-pure-port url #"data"))))
   (define put-impure
     (make-tester (lambda (url) (put-impure-port url #"data"))))
+  (define patch-pure
+    (make-tester (lambda (url) (patch-pure-port url #"data"))))
+  (define patch-impure
+    (make-tester (lambda (url) (patch-impure-port url #"data"))))
 
   (test
    (get-pure
