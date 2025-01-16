@@ -234,6 +234,46 @@ identifier, the @racket[exn:fail:contract] exception is raised.
   (slv-lookup slv-inst-2)
 ]
 
+In the above example, the struct is @racket[free-identifier=?] to the renaming
+target identifier.
+If, however, this is not desired, such as if the struct is mutable, this can be
+prevented by setting the @racket['not-free-identifier=?]
+@racket[syntax-property] to @racket[#t] will prevent this.
+
+@examples[#:eval stx-eval #:escape UNSYNTAX
+  (code:comment "Example of a mutable struct and prop:rename-transformer")
+(define-syntax string1 "hello")
+(define-syntax string2 "world")
+
+(begin-for-syntax
+  (struct string-box (str)
+    #:mutable
+    #:property prop:rename-transformer
+    (λ (inst)
+      (syntax-property
+       (if (string-box-str inst)
+          #'string1
+          #'string2)
+       'not-free-identifier=?
+       #t))))
+(define-syntax (string-lookup stx)
+  (syntax-case stx ()
+    [(_ id)
+     #`'#,(syntax-local-value #'id)]))
+(define-syntax (string-set! stx)
+  (syntax-case stx ()
+    [(_ box value)
+     (begin
+       (define-values (x y) (syntax-local-value/immediate #'box))
+       (set-string-box-str! x (syntax-e #'value))
+       #'(void))]))
+
+(define-syntax current-str (string-box #t))
+(string-lookup current-str)
+(string-set! current-str #f)
+(string-lookup current-str)
+]
+
 @history[#:changed "6.3" "the property now accepts a procedure of one argument."]}
 
 
