@@ -63,6 +63,8 @@ bound as variables in the body. Syntax classes support optional
 arguments and keyword arguments using the same syntax as
 @racket[lambda]. The body of the syntax-class definition contains a
 non-empty sequence of @racket[pattern] variants.
+For examples of syntax classes with formal parameters, see @racket[expr/c]
+in @secref{exprc}.
 
 The following options are supported:
 
@@ -219,7 +221,8 @@ definition or @racket[syntax-parse] expression.
 @defthing[prop:syntax-class (struct-type-property/c (or/c identifier?
                                                           (-> any/c identifier?)))]{
 
-A @tech[#:doc '(lib "scribblings/reference/reference.scrbl")]{structure type property} to identify
+The @racket[prop:syntax-class] @tech[#:doc '(lib "scribblings/reference/reference.scrbl")]{structure type property}
+is provided @racket[for-syntax] by @racketmodname[syntax/parse]. It identifies
 structure types that act as an alias for a @tech{syntax class} or @tech{splicing syntax class}. The
 property value must be an identifier or a procedure of one argument.
 
@@ -234,6 +237,7 @@ which will then be used as in the former case.
 
 @examples[#:eval the-eval
 (begin-for-syntax
+  (require syntax/transformer) (code:comment "for make-variable-like-transformer")
   (struct expr-and-stxclass (expr-id stxclass-id)
     #:property prop:procedure
     (lambda (this stx) ((set!-transformer-procedure
