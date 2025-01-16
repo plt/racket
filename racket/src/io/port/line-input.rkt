@@ -20,7 +20,7 @@
                       string-copy! substring
                       read-a-char peek-a-char
                       as-char direct-string?)
-  (define/who (read-line [orig-in (current-input-port)] [mode 'linefeed])
+  (define/who (read-line [orig-in (current-input-port)] [mode 'any])
     (define in (->core-input-port orig-in who))
     (check who ok-mode? #:contract ok-mode-str mode)
     (maybe-flush-stdout orig-in)
