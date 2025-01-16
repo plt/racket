@@ -1,6 +1,6 @@
 #lang racket/base
 
-(provide bytes-append* bytes-join)
+(provide bytes-append* bytes-join bytes->number)
 
 (define (check-bytes-list* l name)
   (let loop ((l l))
@@ -18,7 +18,8 @@
 (define (bytes-append* bstr-list-or-bstr . null-or-bstr-list*)
   (apply bytes-append (check-bytes-list* (cons bstr-list-or-bstr null-or-bstr-list*) 'bytes-append*)))
 
-(require (only-in racket/list add-between))
+(require (only-in racket/list add-between)
+         (only-in file/sha1 bytes->hex-string))
 
 (define (bytes-join strs sep)
   (cond [(not (and (list? strs) (andmap bytes? strs)))
@@ -28,3 +29,5 @@
         [(null? strs) (bytes)]
         [(null? (cdr strs)) (bytes-copy (car strs))]
         [else (apply bytes-append (add-between strs sep))]))
+
+(define bytes->number (compose (lambda (s) (string->number s 16)) bytes->hex-string))
