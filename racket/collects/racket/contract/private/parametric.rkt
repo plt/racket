@@ -36,6 +36,16 @@
    #:name
    (lambda (c)
      `(parametric->/c ,(polymorphic-contract-vars c) ,(polymorphic-contract-body-src-exp c)))
+   #:first-order
+   (λ (c)
+      (and/c
+        procedure?
+        (lambda (p)
+          (contract-first-order-passes?
+            (apply (polymorphic-contract-body c)
+              (for/list ([var (in-list (polymorphic-contract-vars c))])
+                ((polymorphic-contract-barrier c) #t var)))
+            p))))
    #:stronger
    (λ (this that)
      (cond

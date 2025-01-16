@@ -264,5 +264,14 @@
   (ctest #t contract-first-order-passes?
          (sequence/c any/c any/c)
          (hash 'x 1 'y 2))
-  
+
+  (ctest #t contract-first-order-passes?
+         (parametric->/c (x) (-> x x))
+         (lambda (x) x))
+  (ctest #f contract-first-order-passes?
+         (parametric->/c (x) (-> x x))
+         7)
+  (ctest #f contract-first-order-passes?
+         (parametric->/c (x y) (-> x y x))
+         (lambda (x) x))
   )
