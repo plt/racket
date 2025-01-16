@@ -59,9 +59,10 @@ value. The same form also handles splicing syntax classes. Syntax
 classes with the @racket[#:no-delimit-cut] option cannot be reified.
 }
 
-@deftogether[(
+@deftogether[[
 @defproc[(reified-syntax-class? [x any/c]) boolean?]
-@defproc[(reified-splicing-syntax-class? [x any/c]) boolean?])]{
+@defproc[(reified-splicing-syntax-class? [x any/c]) boolean?]
+]]{
 
 Returns @racket[#t] if @racket[x] is a reified (normal) syntax class
 or a reified splicing syntax class, respectively.
@@ -346,5 +347,65 @@ If @racket[join] were defined as a macro, it would not be usable in
 the context above; instead, @racket[let-values] would report an
 invalid binding list.
 }
+
+@deftogether[
+ ((defthing prop:template-metafunction struct-type-property?)
+  (defthing template-metafunction? (-> any/c boolean?)))]{
+
+ A structure type property, and the associated predicate. The property value is
+ one of:
+
+ @itemlist[
+   @item{an identifier bound to a run-time procedure implementing the
+         metafunction}
+   @item{the index of a field containing such an an identifier}
+   @item{a procedure that takes an instance of the structure and produces
+         such an identifier}]
+
+ The metafunction's implementation should accept a syntax object representing
+ its use, and produce a new syntax object as a result.
+
+ When an identifier is bound as syntax to a structure instance with this
+ property, it is treated as a template metafunction as if the identifier had
+ been declared with @racket[define-template-metafunction].
+
+ @examples[#:eval the-eval
+           (define (my-metafunction-proc stx)
+             (syntax-case stx ()
+               [(_ n) (datum->syntax #'n (add1 (syntax-e #'n)) #'n #'n)]))
+
+           (begin-for-syntax
+             (struct mf-struct (proc-id)
+               #:property prop:template-metafunction
+                          (struct-field-index proc-id)))
+
+           (define-syntax mf (mf-struct #'my-metafunction-proc))
+
+           #'(mf 3)
+           (with-syntax ([(x ...) #'(1 2 3)])
+             #'((mf x) ...))]
+
+ In the example below, a @racketid[macro] defined as a phase 0 syntax
+ transformer refers to a phase 1 @racketid[macro-implementation]. In other
+ words, the implementation is a phase 1 expression, which runs at compile-time
+ with respect to the phase 0 code. Such a macro can make use of template
+ metafunctions inside its uses of @racket[#'…]. These metafunctions will be
+ implemented by phase 1 functions, i.e. they run at compile-time with respect to
+ the phase 0 code, and run at the same phase as the macro's code. The
+ @racketid[metafunction-identifier] is bound as phase 1 syntax transformers
+ which contain, via @racket[prop:template-metafunction], the name of the phase 1
+ function implementing the metafunction.
+
+ @examples[#:eval the-eval
+           (require (for-syntax racket/base))
+           (require (for-meta 2 racket/base))
+           (begin-for-syntax
+             (define (macro-implementation stx)
+               #'(metafunction-identifier metafunction-arguments)))
+           (define-syntax macro macro-implementation)
+           
+           ]
+
+ @history[#:added "8.2"]}
 
 @(close-eval the-eval)

@@ -4,6 +4,7 @@
            (rename "define-et-al.rkt" define-syntax -define-syntax)
            "ellipses.rkt"
            (for-syntax "stx.rkt" "define-et-al.rkt" "qq-and-or.rkt" "cond.rkt"
+                       "prop-template-metafunction.rkt"
                        (rename "define-et-al.rkt" define -define)
                        (rename "define-et-al.rkt" define-syntax -define-syntax)
                        #;"member.rkt" "sc.rkt" '#%kernel))
@@ -12,14 +13,16 @@
            datum
            ~? ~@
            ~@! signal-absent-pvar
+           (for-syntax prop:template-metafunction
+                       template-metafunction
+                       template-metafunction?)
            (protect
             (for-syntax attribute-mapping
                         attribute-mapping?
                         attribute-mapping-name
                         attribute-mapping-var
                         attribute-mapping-depth
-                        attribute-mapping-check
-                        metafunction metafunction?)))
+                        attribute-mapping-check)))
 
 ;; ============================================================
 ;; Syntax of templates
@@ -27,7 +30,8 @@
 ;; A Template (T) is one of:
 ;;   - pattern-variable
 ;;   - constant (including () and non-pvar identifiers)
-;;   - (metafunction . T)
+;;   - (template-metafunction . T)
+;;     ; or any other structure that implements prop:template-metafunction
 ;;   - (H . T)
 ;;   - (H ... . T), (H ... ... . T), etc
 ;;   - (... T)          -- escapes inner ..., ~?, ~@
@@ -110,11 +114,6 @@
   (define (attribute-mapping-name a) (attribute-mapping-ref a 1))
   (define (attribute-mapping-depth a) (attribute-mapping-ref a 2))
   (define (attribute-mapping-check a) (attribute-mapping-ref a 3))
-
-  ;; (struct metafunction (var))
-  (define-values (struct:metafunction metafunction metafunction? metafunction-ref _mf-set!)
-    (make-struct-type 'syntax-metafunction #f 1 0 #f null (current-inspector)))
-  (define (metafunction-var mf) (metafunction-ref mf 0))
 
   (define (guide-is? x tag) (and (pair? x) (eq? (car x) tag)))
 
@@ -275,7 +274,7 @@
                   (unless stx? (wrong-syntax (stx-car t) "metafunctions are not supported"))
                   (disappeared! (stx-car t))
                   (define guide (parse-t (stx-cdr t) depth esc?))
-                  `(t-metafun ,(metafunction-var mf) ,guide
+                  `(t-metafun ,(template-metafunction-accessor mf) ,guide
                               (quote-syntax
                                ,(let ([tstx (and (syntax? t) t)])
                                   (datum->syntax tstx (cons (stx-car t) #f) tstx tstx)))))]
@@ -497,7 +496,7 @@
   ;; lookup-metafun : Identifier -> Metafunction/#f
   (define (lookup-metafun id)
     (define v (syntax-local-value id (lambda () #f)))
-    (and (metafunction? v) v))
+    (and (template-metafunction? v) v))
 
   (define (dotted-prefixes id)
     (let* ([id-string (symbol->string (syntax-e id))]

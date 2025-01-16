@@ -66,3 +66,87 @@
 
 (terx (template (bad-mf))
       #rx"result of template metafunction was not syntax")
+
+;; ============================================================
+
+;; Test prop:template-metafunction and template-metafunction?
+
+(define-syntax (is-metafunction? stx)
+  (syntax-case stx ()
+    [(_ id)
+     #`#,(template-metafunction? (syntax-local-value #'id))]))
+
+(test-case "template-metafunction? on define-template-metafunction"
+  (define-template-metafunction (mf1 stx)
+    #'1)
+
+  (check-true (is-metafunction? mf1)))
+
+(begin-for-syntax
+  (struct my-template-metafunction2 (proc-id)
+    #:property prop:template-metafunction (struct-field-index proc-id)))
+(test-case
+    "template-metafunction? on custom prop:template-metafunction with field"
+  (define (myproc2 stx) #'2)
+  (define-syntax mf2 (my-template-metafunction2 (quote-syntax myproc2)))
+  
+  (check-true (is-metafunction? mf2)))
+
+
+;; must be before the definition of my-template-metafunction3
+(define (myproc3 stx) #'3)
+;; must be outside of the (test-case …) form
+(begin-for-syntax
+  (struct my-template-metafunction3 ()
+    #:property prop:template-metafunction (quote-syntax myproc3)))
+(test-case "template-metafunction? on custom prop:template-metafunction with id"
+  (define-syntax mf3 (my-template-metafunction3))
+  
+  (check-true (is-metafunction? mf3)))
+
+(test-case "use define-template-metafunction"
+  (define-template-metafunction (mf-def-for-use stx)
+    (syntax-case stx ()
+      [(_ n) #`#,(/ (syntax-e #'n) 2)]))
+
+  (check-equal? (syntax->datum (template (x (mf-def-for-use 6) z)))
+                '(x 3 z)))
+
+(begin-for-syntax
+  (struct my-template-metafunction4 (proc-id)
+    #:property prop:template-metafunction (struct-field-index proc-id)))
+(test-case "use custom prop:template-metafunction with field"
+  (define (myproc4 stx)
+    (syntax-case stx ()
+      [(_ n) #`#,(add1 (syntax-e #'n))]))
+  (define-syntax mf4 (my-template-metafunction4 (quote-syntax myproc4)))
+  
+  (check-equal? (syntax->datum (template (x (mf4 3) z)))
+                '(x 4 z)))
+
+;; must be before the definition of my-template-metafunction5
+(define (myproc5 stx)
+  (syntax-case stx ()
+    [(_ n) #`#,(* (syntax-e #'n) 2)]))
+;; must be outside of the (test-case …) form
+(begin-for-syntax
+  (struct my-template-metafunction5 ()
+    #:property prop:template-metafunction (quote-syntax myproc5)))
+(test-case "use custom prop:template-metafunction with id"
+  (define-syntax mf5 (my-template-metafunction5))
+  
+  (check-equal? (syntax->datum (template (x (mf5 3) z)))
+                '(x 6 z)))
+
+(begin-for-syntax
+  (struct my-template-metafunction6 (proc-id)
+    #:property prop:template-metafunction
+    (lambda (self) (my-template-metafunction6-proc-id self))))
+(test-case "use custom prop:template-metafunction with a function"
+  (define (myproc6 stx)
+    (syntax-case stx ()
+      [(_ n) #`#,(* 2 (syntax-e #'n))]))
+  (define-syntax mf6 (my-template-metafunction6 (quote-syntax myproc6)))
+  
+  (check-equal? (syntax->datum (template (x (mf6 3) z)))
+                '(x 6 z)))
