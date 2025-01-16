@@ -688,7 +688,8 @@
        (when (and (module-binding? binding)
                   (not (inside-module-context? (module-binding-module binding)
                                                (root-expand-context-self-mpi ctx))))
-         (raise-syntax-error #f "cannot mutate module-required identifier" s id))
+         (raise-syntax-error #f "cannot mutate identifier that is defined in another module" s id
+                             ))
        (log-expand ctx 'next)
        (register-variable-referenced-if-local! binding ctx)
        (define rebuild-s (keep-as-needed ctx s))
