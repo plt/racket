@@ -107,6 +107,37 @@ Equivalent to @racket[(dict-implements? d 'dict-set!)].
 ]}
 
 
+@defproc[(dict-mutability/c [b boolean?]) flat-contract?]{
+
+Recognizes a mutable dictionary when @racket[b] is true, and otherwise
+recognizes an immutable dictionary.
+
+@examples[
+#:eval dict-eval
+((dict-mutability/c #t) '())
+((dict-mutability/c #f) '())
+((dict-mutability/c #t) (make-hash))
+((dict-mutability/c #f) (make-hash))
+((dict-mutability/c #t) (make-immutable-hash))
+((dict-mutability/c #f) (make-immutable-hash))
+]
+}
+
+@defproc[(dict-immutability/c [b boolean?]) flat-contract?]{
+
+Recognizes an immutable dictionary when @racket[b] is true, and otherwise
+recognizes an mutable dictionary.
+
+@examples[
+#:eval dict-eval
+((dict-immutability/c #t) '())
+((dict-immutability/c #f) '())
+((dict-immutability/c #t) (make-hash))
+((dict-immutability/c #f) (make-hash))
+((dict-immutability/c #t) (make-immutable-hash))
+((dict-immutability/c #f) (make-immutable-hash))
+]
+}
 
 @defproc[(dict-can-remove-keys? [d dict?]) boolean?]{
 
@@ -139,6 +170,82 @@ Equivalent to @racket[(dict-implements? d 'dict-set)].
 (dict-can-functional-set? '#("apple" "banana"))
 (dict-can-functional-set? '((a . "apple") (b . "banana")))
 ]}
+
+
+@defproc[(homogenous-dictof [key-contract flat-contract?] [value-contract flat-contract?])
+          flat-contract?]{
+Recognizes a dictionary whose all satisfy the @racket[key-contract] and whose
+values all satisfy the @racket[value-contract].
+
+@examples[
+#:eval dict-eval
+((homogeneous-dictof symbol? integer?) '((a . 5)))
+((homogeneous-dictof symbol? integer?) '((a . 5) (b . 5)))
+((homogeneous-dictof symbol? integer?) '((a . 5) (b . a)))
+]
+}
+
+@defproc[(heterogeneous-dictof [#:mandatory-keys? mandatory-keys? boolean? #t]
+                               [#:exact-keys? exact-keys? boolean? #f]
+                               [#:immutable? immutable? boolean? #t]
+                               [key-contract flat-contract?] [value-contract flat-contract?] ... ...)
+         flat-contract?]{
+Recognizes a dictionary for which every key that satsifies a key contract maps
+to a value satisfying the corresponding value contract.
+Each @racket[key-contract] must be followed by a @racket[value-contract], so the
+total number of non-keyword arguments is even.
+
+@examples[
+#:eval dict-eval
+
+((heterogeneous-dictof symbol? integer? integer? symbol?) '())
+((heterogeneous-dictof symbol? integer? integer? symbol?) '((a . 5) (6 . b)))
+((heterogeneous-dictof symbol? integer? integer? symbol?) '((a . 5) (a . b)))
+((heterogeneous-dictof symbol? integer? integer? symbol?) '((a . 5)))
+((heterogeneous-dictof symbol? integer? integer? symbol?) '((6 . b)))
+((heterogeneous-dictof 'a integer?) '((a . 5)))
+((heterogeneous-dictof 'a integer?) '((b . 5)))
+]
+
+If @racket[exact-keys?] is specified, then the @racket[key-contract]s are
+interpreted as keys in contracted dictionary, and the dictionary is required to
+contain exactly the keys specified.
+
+@examples[
+#:eval dict-eval
+((heterogeneous-dictof #:exact-keys? #f 'a integer?) '((a . 5)))
+((heterogeneous-dictof #:exact-keys? #f 'a integer?) '((a . 5) (b . 5)))
+]
+
+If @racket[mandatory-keys?] is specified (the default), then a key matching each
+key contracts is required to be in the dictionary.
+Otherwise, contracted keys are optional, but if present, their value must match
+the corresponding contract.
+
+@examples[
+#:eval dict-eval
+
+((heterogeneous-dictof #:mandatory-keys? #f symbol? integer? integer? symbol?) '())
+((heterogeneous-dictof #:mandatory-keys? #f 'a integer?) '((b . 6)))
+((heterogeneous-dictof #:mandatory-keys? #f 'a integer?) '((a . 5)))
+((heterogeneous-dictof #:mandatory-keys? #f 'a integer?) '((a . 5) (b . 6)))
+((heterogeneous-dictof #:mandatory-keys? #f 'a integer?) '((a . b)))
+]
+
+If @racket[immutable?] is specified (the default), then the contracted
+dictionary is only recognized if it is immutable, and otherwise it is recognized
+if it is mutable.
+
+@examples[
+#:eval dict-eval
+((heterogeneous-dictof 'a integer?) '((a . 5)))
+((heterogeneous-dictof #:immutable? #f 'a integer?) '((a . 5)))
+((heterogeneous-dictof 'a integer?) (make-hash '((a . 5))))
+((heterogeneous-dictof #:immutable? #f 'a integer?) (make-hash '((a . 5))))
+((heterogeneous-dictof 'a integer?) (hash 'a 5))
+((heterogeneous-dictof #:immutable? #f 'a integer?) (hash 'a 5))
+]
+}
 
 @section{Generic Dictionary Interface}
 

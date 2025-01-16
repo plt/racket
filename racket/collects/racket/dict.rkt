@@ -1,6 +1,7 @@
 #lang racket/base
 (require racket/contract/base
          "private/dict.rkt"
+         "private/dict-contracts.rkt"
          "private/keyword-apply-dict.rkt"
          "private/custom-hash.rkt")
 
@@ -277,7 +278,22 @@
  [dict-implements?
   (->* [dict?] [] #:rest (listof dict-method-name/c) boolean?)]
  [dict-implements/c
-  (->* [] [] #:rest (listof dict-method-name/c) flat-contract?)])
+  (->* [] [] #:rest (listof dict-method-name/c) flat-contract?)]
+
+
+ [dict-mutability/c
+   (-> boolean? (-> any/c boolean?))]
+ [dict-immutability/c
+  (-> boolean? (-> any/c boolean?))]
+ [homogeneous-dictof
+  (-> flat-contract? flat-contract? (-> any/c boolean?))]
+ [heterogeneous-dictof
+  (->* () (#:mandatory-keys? boolean?
+           #:exact-keys? boolean?
+           #:immutable? boolean?)
+       #:rest (and/c (lambda (x) (even? (length x)))
+                     (listof flat-contract?))
+       (-> any/c boolean?))])
 
 (provide gen:dict
          prop:dict
