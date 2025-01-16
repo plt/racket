@@ -347,4 +347,7 @@ the context above; instead, @racket[let-values] would report an
 invalid binding list.
 }
 
+@defform[(syntax-local-template-introduce stx)]{
+ Like @racket[syntax-local-introduce], but for @tech{template metafunctions}.}
+
 @(close-eval the-eval)

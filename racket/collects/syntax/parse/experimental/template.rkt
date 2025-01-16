@@ -8,7 +8,8 @@
                      [quasisyntax/loc quasitemplate/loc]
                      [~? ??]
                      [~@ ?@])
-         define-template-metafunction)
+         define-template-metafunction
+         syntax-local-template-metafunction-introduce)
 
 ;; ============================================================
 ;; Metafunctions
@@ -26,11 +27,23 @@
 (define current-template-metafunction-introducer
   (make-parameter (lambda (stx) (if (syntax-transforming?) (syntax-local-introduce stx) stx))))
 
+(define old-template-metafunction-introducer
+  (make-parameter #f))
+
 (define ((make-hygienic-metafunction transformer) stx)
   (define mark (make-syntax-introducer))
   (define old-mark (current-template-metafunction-introducer))
-  (parameterize ((current-template-metafunction-introducer mark))
+  (parameterize ((current-template-metafunction-introducer mark)
+                 (old-template-metafunction-introducer old-mark))
     (define r (call-with-continuation-barrier (lambda () (transformer (mark (old-mark stx))))))
     (unless (syntax? r)
       (raise-syntax-error #f "result of template metafunction was not syntax" stx))
     (old-mark (mark r))))
+
+(define (syntax-local-template-metafunction-introduce stx)
+  (let ([mark (current-template-metafunction-introducer)]
+        [old-mark (old-template-metafunction-introducer)])
+    (unless old-mark
+      (error 'syntax-local-template-metafunction-introduce
+             "must be called within the dynamic extent of a template metafunction"))
+    (mark (old-mark stx))))
