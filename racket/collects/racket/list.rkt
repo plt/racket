@@ -39,6 +39,7 @@
          append*
          flatten
          add-between
+         remove-index
          remove-duplicates
          check-duplicates
          filter-map
@@ -392,6 +393,22 @@
                       (if (pair? l)
                         (loop (car l) (cdr l) (cons i (cons x r)))
                         (cons i (cons before-last r))))))]))
+
+(define (remove-index ls index)
+  (unless (list? ls)
+    (raise-argument-error 'remove-index "list?" 0 ls index))
+  (unless (exact-nonnegative-integer? index)
+    (raise-argument-error 'remove-index "exact-nonnegative-integer?" 1 ls index))
+  (let loop ([count 0]
+             [lst ls])
+    (cond [(null? lst) '()]
+          [(= count index)
+           (loop (add1 count)
+                 (cdr lst))]
+          [else
+           (cons (car lst)
+                 (loop (add1 count)
+                       (cdr lst)))])))
 
 (define (remove-duplicates l [=? equal?] #:key [key #f])
   ;; `no-key' is used to optimize the case for long lists, it could be done for
