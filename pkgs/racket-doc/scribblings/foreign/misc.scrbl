@@ -118,3 +118,32 @@ there is no way to know where the block ends.}
          vector?]{
 
 Like @racket[cblock->list], but for Racket vectors.}
+
+
+@defform*[[(_delay ctype)
+           (_delay ctype base-ctype)]
+          #:contracts ([type-expr ctype?]
+                       [base-type-expr ctype?])]{
+
+Returns a C type @racket[_delayed-ctype] that converts values like
+@racket[ctype] but delays the evaluation of @racket[ctype] until it is need
+to perform a conversion, such as for a foreign call or struct access. The
+@racket[base-ctype] is used for the size and foreign representation of
+@racket[_delayed-ctype]; if it is not specified, it defaults to
+@racket[_pointer].
+
+If @racket[ctype] and @racket[base-ctype] have different sizes, an exception
+is raised when @racket[_delayed-ctype] is used to perform a conversion.
+
+Use @racket[_delay] for forward references, for example in mutually
+recursive C struct definitions:
+@racketblock[
+(define-cstruct _Person
+  ([name _string]
+   [friends (_delay _PersonList-pointer/null)]))
+(define-cstruct _PersonList
+  ([first _Person-pointer]
+   [rest _PersonList-pointer/null]))
+]
+
+@history[#:added "8.4.0.7"]}

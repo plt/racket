@@ -1738,6 +1738,48 @@
 
 ;; ----------------------------------------
 
+(let ()
+  ;; test _delay with non-gcable types
+  (define counter 0)
+  (define-cstruct _outer
+    ([x (_delay (begin (set! counter (add1 counter)) _inner-pointer))])
+    #:malloc-mode 'raw)
+  (define-cstruct _inner
+    ([y _int])
+    #:malloc-mode 'raw)
+  (define an-inner (make-inner 42))
+  (test 0 values counter)
+  (define an-outer (make-outer an-inner))
+  (test 1 values counter)
+  (test #t inner? (outer-x an-outer))
+  (test #t ptr-equal? (outer-x an-outer) an-inner)
+  (test 1 values counter)
+  (free an-outer)
+  (free an-inner))
+
+(let ()
+  ;; test _delay again with gcable types
+  (define counter 0)
+  (define-cstruct _outer
+    ([x (_delay (begin (set! counter (add1 counter)) _inner-pointer) _gcpointer)])
+    #:malloc-mode 'nonatomic)
+  (define-cstruct _inner
+    ([y _int])
+    #:malloc-mode 'atomic)
+  (define an-inner (make-inner 42))
+  (test 0 values counter)
+  (define an-outer (make-outer an-inner))
+  (test 1 values counter)
+  (test #t inner? (outer-x an-outer))
+  (test #t ptr-equal? (outer-x an-outer) an-inner)
+  (test 1 values counter)
+  (test #t (lambda ()
+             (for/and ([i 10])
+               (collect-garbage)
+               (equal? 42 (inner-y (outer-x an-outer)))))))
+
+;; ----------------------------------------
+
 (report-errs)
 
 #| --- ignore everything below ---

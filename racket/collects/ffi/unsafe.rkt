@@ -2304,3 +2304,29 @@
       [args
        (for/fold ([r (void)]) ([v (in-list args)])
          (ephemeron-value e r v))])))
+
+(provide _delay)
+(define-syntax (_delay stx)
+  (syntax-case stx ()
+    [(_ type)
+     #'(_delay* (lambda () type))]
+    [(_ type base-type)
+     #'(_delay* (lambda () type) base-type)]))
+
+(define (_delay* get-type [base-type _pointer])
+  ;; Like delay/cas: okay to call get-type multiple times, just keep one result.
+  (define type-box (box #f))
+  (define (type)
+    (or (unbox type-box)
+        (let ([the-type (get-type)])
+          (unless (= (ctype-sizeof the-type) (ctype-sizeof base-type))
+            (error '_delay "~a\n  type: ~e\n  base type: ~e"
+                   "delayed type does not have same size as base type" the-type base-type))
+          (if (box-cas! type-box #f the-type)
+              the-type
+              (type)))))
+  (define (delayed-type-rkt->c v)
+    (cast v (type) base-type))
+  (define (delayed-type-c->rkt v)
+    (cast v base-type (type)))
+  (make-ctype base-type delayed-type-rkt->c delayed-type-c->rkt))
