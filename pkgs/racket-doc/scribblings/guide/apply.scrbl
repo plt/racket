@@ -54,10 +54,15 @@ by-position arguments. For that case, an @racket[_arg] can be an
 
 For example,
 
-@racketblock[(go "super.rkt" #:mode 'fast)]
+@def+int[
+(define (go file-name  #:mode mode-name)
+  (println (string-append "filename: " file-name))
+  (println (string-append "mode-name: " mode-name)))
+]
+@racketblock[(go "super.rkt" #:mode "fast")]
 
 calls the function bound to @racket[go] with @racket["super.rkt"] as a
-by-position argument, and with @racket['fast] as an argument
+by-position argument, and with @racket["fast"] as an argument
 associated with the @racket[#:mode] keyword. A keyword is implicitly
 paired with the expression that follows it.
 
@@ -74,7 +79,7 @@ The order of keyword @racket[_arg]s determines the order in which
 arguments independent of their position in the argument list. The
 above call to @racket[go] can be equivalently written
 
-@racketblock[(go #:mode 'fast "super.rkt")]
+@racketblock[(go #:mode "fast" "super.rkt")]
 
 @refdetails["application"]{procedure applications}
 
