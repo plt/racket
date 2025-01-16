@@ -1066,8 +1066,9 @@
     (copy-file (build-path (tmp-info-dir tmp) location)
                dest-file
                #t)])
-  (unless (equal? 'windows (system-type 'os))
-    (file-or-directory-permissions dest-file perms)))
+  (if (equal? 'windows (system-type 'os))
+      (file-or-directory-permissions dest-file #o777)
+      (file-or-directory-permissions dest-file perms)))
 
 ;; object->bytes : tmp-info location -> bytes
 (define (object->bytes tmp location)
