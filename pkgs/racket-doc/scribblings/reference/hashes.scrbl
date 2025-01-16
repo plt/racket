@@ -25,8 +25,9 @@ hash tables can pay off in certain algorithms. Use @racket[immutable?]
 to check whether a hash table is immutable.
 
 @margin-note{Immutable hash tables actually provide @math{O(log N)}
-access and update. Since @math{N} is limited by the address space so
-that @math{log N} is limited to less than 30 or 62 (depending on the
+access and update (where the base of the @math{log} is 32).
+Since @math{N} is limited by the address space so
+that @math{log N} is limited to less than 7 or 13 (depending on the
 platform), @math{log N} can be treated reasonably as a constant.}
 
 For @racket[equal?]-based hashing, the built-in hash functions on
