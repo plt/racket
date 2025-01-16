@@ -674,12 +674,34 @@
 (err/rt-test (list-update #f 0 symbol->string))
 (err/rt-test (list-update '(zero one two) 0 #f))
 
+;; ---------- list-update* ----------
+(test '(0 2 1) list-update* '(0 1 2) 2 sub1 1 add1)
+(test '(0 2 1) list-update* '(0 1 2) 1 add1 2 sub1)
+(test '(0 2 2) list-update* '(0 1 2) 1 add1 1 add1)
+(err/rt-test (list-update* '(0 1 2) 0 sub1 3 add1))
+(err/rt-test (list-update* '(zero one two) 3 symbol->string))
+(err/rt-test (list-update* '(zero one two) 1 symbol->string -1 symbol->string))
+(err/rt-test (list-update* '(zero one two) #f symbol->string))
+(err/rt-test (list-update* #f 0 symbol->string))
+(err/rt-test (list-update* '(zero one two) 0 #f))
+
 ;; ---------- list-set ----------
 
 (test '(zero one "two") list-set '(zero one two) 2 "two")
 (err/rt-test (list-set '(zero one two) 3 "two"))
 (err/rt-test (list-set '(zero one two) -1 "two"))
 (err/rt-test (list-set '(zero one two) #f "two"))
+
+;; ---------- list-set* ----------
+
+(test '(3 4 2) list-set* '(0 1 2) 0 3 1 4)
+(test '(3 4 2) list-set* '(0 1 2) 1 4 0 3)
+(test '(4 1 2) list-set* '(0 1 2) 0 3 0 4)
+(test '("zero" one "two") list-set* '(zero one two) 2 "two" 0 "zero")
+(err/rt-test (list-set* '(zero one two) 1 "one" 0 "zero" #f "false"))
+(err/rt-test (list-set* '(zero one two) 3 "two"))
+(err/rt-test (list-set* '(zero one two) -1 "two"))
+(err/rt-test (list-set* '(zero one two) #f "two"))
 
 ;; ---------- list prefix functions ----------
 

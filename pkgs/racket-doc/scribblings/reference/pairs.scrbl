@@ -1031,7 +1031,7 @@ Returns a newly constructed list of length @racket[k], holding
   (make-list 7 'foo)]}
 
 @defproc[(list-update [lst list?]
-                      [pos (and/c (>=/c 0) (</c (length lst)))]
+                      [pos (and/c exact-nonnegative-integer? (</c (length lst)))]
                       [updater (-> any/c any/c)])
          list?]{
 
@@ -1045,8 +1045,27 @@ This function takes time proportional to @racket[pos].
 @history[#:added "6.3"]{}
 }
 
+@defproc[(list-update* [lst list?]
+                       [pos (and/c exact-nonnegative-integer? (</c (length lst)))]
+                       [updater (-> any/c any/c)]
+                       ...
+                       ...)
+         list?]{
+
+Returns a list that is the same as @racket[lst] except at the specified indexes.
+The elements at the specified indexes are @racket[(updater (list-ref lst pos)) ...].
+
+This function takes time proportional to the maximum value among @racket[pos ...].
+
+@examples[#:eval list-eval
+(list-update* '(0 1 2) 1 add1 2 sub1)
+(list-update* '(0 1 2) 2 sub1 1 add1)
+(list-update* '(0 1 2) 1 add1 1 add1)]
+@history[#:added "8.6.0.10"]{}
+}
+
 @defproc[(list-set [lst list?]
-                   [pos (and/c (>=/c 0) (</c (length lst)))]
+                   [pos (and/c exact-nonnegative-integer? (</c (length lst)))]
                    [value any/c])
          list?]{
 
@@ -1060,12 +1079,31 @@ This function takes time proportional to @racket[pos].
 @history[#:added "6.3"]{}
 }
 
+@defproc[(list-set* [lst list?]
+                    [pos (and/c exact-nonnegative-integer? (</c (length lst)))]
+                    [value any/c]
+                    ...
+                    ...)
+         list?]{
+
+Returns a list that is the same as @racket[lst] except at the specified indexes.
+The elements at the specified indexes are @racket[value ...].
+
+This function takes time proportional to the maximum value among @racket[pos ...].
+
+@examples[#:eval list-eval
+(list-set* '(0 1 2) 0 3 1 4)
+(list-set* '(0 1 2) 1 4 0 3)
+(list-set* '(0 1 2) 0 3 0 4)]
+@history[#:added "8.6.0.10"]{}
+}
+
 @defproc[(index-of [lst list?] [v any/c]
                    [is-equal? (any/c any/c . -> . any/c) equal?])
          (or/c exact-nonnegative-integer? #f)]{
 Like @racket[member], but returns the index of the first element found
 instead of the tail of the list.
-                          
+
 @mz-examples[#:eval list-eval
   (index-of '(1 2 3 4) 3)]
 
@@ -1086,7 +1124,7 @@ Like @racket[index-of] but with the predicate-searching behavior of
          (listof exact-nonnegative-integer?)]{
 Like @racket[index-of], but returns the a list of all the indexes
 where the element occurs in the list instead of just the first one.
-                          
+
 @mz-examples[#:eval list-eval
   (indexes-of '(1 2 1 2 1) 2)]
 
@@ -1359,7 +1397,7 @@ Returns the first duplicate item in @racket[lst]. More precisely, it
 returns the first @racket[_x] such that there was a previous
 @racket[_y] where @racket[(same? (extract-key _x) (extract-key _y))].
 
-If no duplicate is found, then @racket[failure-result] determines the 
+If no duplicate is found, then @racket[failure-result] determines the
 result:
 
 @itemize[
@@ -1418,9 +1456,9 @@ the operation can be specialized to improve performance.
          list?]{
 
 Like @racket[(map proc lst ...)], except that, if @racket[proc]
-returns @racket[#false], that element is omitted from the resulting list. 
-In other words, @racket[filter-map] is equivalent to 
-@racket[(filter (lambda (x) x) (map proc lst ...))], but more efficient, 
+returns @racket[#false], that element is omitted from the resulting list.
+In other words, @racket[filter-map] is equivalent to
+@racket[(filter (lambda (x) x) (map proc lst ...))], but more efficient,
 because @racket[filter-map] avoids
 building the intermediate list.
 

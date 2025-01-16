@@ -26,8 +26,16 @@
   (zero? (vector-length v)))
 
 (define (vector-set*! v . pairs)
+  (unless (and (vector? v) (not (immutable? v)))
+    (apply raise-argument-error 'vector-set*! "(and/c vector? (not/c immutable?))" 0 v pairs))
   (unless (even? (length pairs))
-    (error 'vector-set*! "expected an even number of association elements, but received an odd number: ~e" pairs))
+    (raise-arguments-error
+     'vector-set*!
+     (format "expected ~a, but received ~a"
+             "an even number of association elements"
+             "an odd number of association elements")
+     "association elements"
+     pairs))
   (let loop ([pairs pairs])
     (unless (null? pairs)
       (vector-set! v (car pairs) (cadr pairs))
