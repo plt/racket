@@ -1738,6 +1738,47 @@
 
 ;; ----------------------------------------
 
+(require (submod ffi/unsafe private-for-testing))
+
+;; Only test on systems with unix-style paths.
+(when (memq (system-type 'os) '(unix macosx))
+  (define get-fallbacks0 (make-macosx-default-get-fallbacks))
+  (define (get-fallbacks name)
+    (define home-dir (path->string (find-system-path 'home-dir)))
+    (for/list ([lib (map path->string (get-fallbacks0 name))])
+      (regexp-replace (format "^~a" (regexp-quote home-dir)) lib "~/")))
+
+  (define libx-paths
+    '("~/lib/libx.dylib" "/usr/local/lib/libx.dylib" "/usr/lib/libx.dylib"))
+  (test libx-paths get-fallbacks "libx.dylib")
+  (test libx-paths get-fallbacks "bar/baz/libx.dylib")
+  (test libx-paths get-fallbacks "/bar/baz/libx.dylib")
+  (test libx-paths get-fallbacks "/bar/../libx.dylib")
+  (test libx-paths get-fallbacks "/bar/../libx.dylib")
+  (test libx-paths get-fallbacks "../bar/../libx.dylib")
+
+  (define fw/libx-paths
+    '("~/Library/Frameworks/bar.framework/libx.dylib"
+      "/Library/Frameworks/bar.framework/libx.dylib"
+      "/System/Library/Frameworks/bar.framework/libx.dylib"))
+  (test fw/libx-paths get-fallbacks "baz/bar.framework/libx.dylib")
+  (test fw/libx-paths get-fallbacks "/baz/bar.framework/libx.dylib")
+
+  (define fw/y/libx-paths
+    '("~/Library/Frameworks/bar.framework/y/libx.dylib"
+      "/Library/Frameworks/bar.framework/y/libx.dylib"
+      "/System/Library/Frameworks/bar.framework/y/libx.dylib"))
+
+  (test fw/y/libx-paths get-fallbacks "baz/bar.framework/y/libx.dylib")
+  (test fw/y/libx-paths get-fallbacks "baz/bar.framework/y/z/../libx.dylib")
+  (test fw/y/libx-paths get-fallbacks "baz/bar.framework/z/../y/libx.dylib")
+
+  (test null get-fallbacks "baz/bar.framework/../libx.dylib")
+  (test null get-fallbacks "baz/bar.framework/../y/libx.dylib")
+  (test null get-fallbacks "baz/bar.framework/y/../../z/libx.dylib"))
+
+;; ----------------------------------------
+
 (report-errs)
 
 #| --- ignore everything below ---

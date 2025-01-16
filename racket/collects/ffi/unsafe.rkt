@@ -134,6 +134,8 @@
 (define (get-ffi-lib name [version/s ""]
 		     #:fail [fail #f]
 		     #:get-lib-dirs [get-lib-dirs get-lib-search-dirs]
+                     #:get-fallbacks [get-fallbacks
+                                      (lambda (name) (default-get-fallbacks name))]
                      #:global? [global? (eq? (system-type 'so-mode) 'global)]
                      #:custodian [custodian #f])
   (cond
@@ -159,6 +161,8 @@
         lib))
     (define (skip-lib name)
       (begin (set! tried (cons name tried)) #f))
+    (define (try-lib+fallbacks name)
+      (or (try-lib name) (ormap try-lib (get-fallbacks name))))
     (define (try-lib-if-exists? name)
       (cond [(file-exists?/insecure name) (try-lib (fullpath name))]
             [else (skip-lib (fullpath name))]))
@@ -187,8 +191,8 @@
                            (try-lib (build-path dir name0))))
                      (get-lib-dirs)))
          ;; try a system search
-         (ormap try-lib names)              ; try good names first
-         (try-lib name0)                    ; try original
+         (ormap try-lib+fallbacks names)    ; try good names first
+         (try-lib+fallbacks name0)          ; try original
          (ormap try-lib-if-exists? names)   ; try relative paths
          (try-lib-if-exists? name0)         ; relative with original
          ;; give up: by default, call ffi-lib so it will raise an error
@@ -222,6 +226,58 @@
 
 (define (get-ffi-lib-internal x)
   (if (ffi-lib? x) x (get-ffi-lib x)))
+
+(define (make-macosx-default-get-fallbacks
+         [dyld-fallback-library-path
+          (getenv "DYLD_FALLBACK_LIBRARY_PATH")]
+         [dyld-fallback-framework-path
+          (getenv "DYLD_FALLBACK_FRAMEWORK_PATH")])
+  ;; see "Searching" in man page for dlopen (Mac OS 11.2)
+  (define home-dir (find-system-path 'home-dir))
+  (define default-lib-dirs
+    (list (build-path home-dir "lib")
+          "/usr/local/lib"
+          "/usr/lib"))
+  (define default-framework-dirs
+    (list (build-path home-dir "Library/Frameworks")
+          "/Library/Frameworks"
+          "/System/Library/Frameworks"))
+  (define lib-dirs
+    (cond [dyld-fallback-library-path
+           => (lambda (s) (path-list-string->path-list s null))]
+          [else default-lib-dirs]))
+  (define framework-dirs
+    (cond [dyld-fallback-framework-path
+           => (lambda (s) (path-list-string->path-list s null))]
+          [else default-framework-dirs]))
+  (lambda (name)
+    (cond [(not (regexp-match? #rx#"/" name))
+           (map (lambda (dir) (build-path dir name)) lib-dirs)]
+          [(regexp-match #rx#"([^/]+.framework)/([^/]+(?:/[^/]+)*)$" name)
+           => (lambda (m)
+                (define framework (bytes->path (cadr m)))
+                (define suffix (simplify-path (bytes->path (caddr m)) #f))
+                (cond [(regexp-match? #rx#"^..(?:$|/)" suffix)
+                       (log-ffi-lib-warning
+                        "path would escape framework directory, skipping fallbacks: ~e"
+                        name)
+                       null]
+                      [else (for/list ([dir (in-list framework-dirs)])
+                              (build-path dir framework suffix))]))]
+          [(regexp-match #rx#"/([^/]+)$" name)
+           => (lambda (m)
+                (for/list ([dir (in-list lib-dirs)])
+                  (build-path dir (bytes->path (cadr m)))))]
+          [else null])))
+
+(module+ private-for-testing
+  (provide make-macosx-default-get-fallbacks))
+
+;; String -> (Listof Path-String)
+(define default-get-fallbacks
+  (case (system-type 'os)
+    [(macosx) (make-macosx-default-get-fallbacks)]
+    [else (lambda (name) null)]))
 
 ;; These internal functions provide the functionality to be used by
 ;; get-ffi-obj, set-ffi-obj! and define-c below
