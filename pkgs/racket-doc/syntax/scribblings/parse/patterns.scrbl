@@ -888,7 +888,10 @@ repetition. They are useful for matching, for example, keyword
 arguments where the keywords may come in any order. Multiple
 alternatives are grouped together via @racket[~alt].
 
-@examples[#:eval the-eval
+Note:  @racketid[syntax-parser] is used in phase 0, so we need to use @racket[(require syntax/parse)] instead of @racket[(require (for-syntax syntax/parse))] as we would use for the phase 1 @racketid[syntax-parse].
+  
+  @examples[#:eval the-eval
+  (require syntax/parse)
 (define parser1
   (syntax-parser
    [((~alt (~once (~seq #:a x) #:name "#:a keyword")
