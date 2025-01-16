@@ -55,6 +55,10 @@
          in-combinations
          permutations
          in-permutations
+         best+key+index
+         best
+         best-key
+         best-index
          argmin
          argmax
          group-by
@@ -819,6 +823,47 @@
               (loop min min-var (cdr xs))]))]))))
 (define (argmin f xs) (mk-min < 'argmin f xs))
 (define (argmax f xs) (mk-min > 'argmax f xs))
+
+(define (mk-best+index name xs better? key)
+  (unless (and (procedure? better?) (procedure-arity-includes? better? 2))
+    (raise-argument-error name "(any/c any/c . -> . any/c)" better?))
+  (unless (and (procedure? key)
+               (procedure-arity-includes? key 1))
+    (raise-argument-error name "(any/c . -> . any/c)" 0 key xs))
+  (unless (and (pair? xs) ; not empty
+               (list? xs))
+    (raise-argument-error name "(and/c list? (not/c empty?))" 1 key xs))
+  (define first-x (car xs))
+  (let loop ([best-x first-x]
+             [best-val (key first-x)]
+             [best-idx 0]
+             [xs (cdr xs)]
+             [idx 1])
+    (cond
+      [(null? xs)
+       (values best-x best-val best-idx)]
+      [else
+       (define x (car xs))
+       (define x-val (key x))
+       (if (better? x-val best-val)
+           (loop x      x-val    idx      (cdr xs) (+ idx 1))
+           (loop best-x best-val best-idx (cdr xs) (+ idx 1)))])))
+
+;; Same interface as sort, and generalizes argmin/argmax.
+(define (best+key+index xs better? #:key [key values])
+  (mk-best+index 'best+key+index xs better? key))
+;; The following convenience functions return a single value.
+;; (The 3 functions that return 2-of-3 values will not provided.)
+(define (best xs better? #:key [key values])
+  (let-values ([(best-x best-val best-idx) (mk-best+index 'best xs better? key)])
+    best-x))
+;; `best-key` with `key=values` is just `best`.
+(define (best-key xs better? #:key [key values])
+  (let-values ([(best-x best-val best-idx) (mk-best+index 'best-key xs better? key)])
+    best-val))
+(define (best-index xs better? #:key [key values])
+  (let-values ([(best-x best-val best-idx) (mk-best+index 'best-index xs better? key)])
+    best-idx))
 
 ;; (x -> y) (listof x) [(y y -> bool)] -> (listof (listof x))
 ;; groups together elements that are considered equal

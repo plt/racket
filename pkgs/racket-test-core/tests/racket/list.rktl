@@ -196,6 +196,34 @@
   (test '(x x) make-list 2 'x)
   (err/rt-test (make-list -3 'x)))
 
+;; ---------- best+key+index ----------
+
+(let ()
+  (define l '(3 3 1 2 3 6 7 2 1 6 7 2))
+
+  (define (check-best l better? x v i #:key [key values])
+    (test
+     (list x v i)
+     call-with-values
+     (λ () (best+key+index l better? #:key key))
+     list)
+    (test x best l better? #:key key)
+    (test v best-key l better? #:key key)
+    (test i best-index l better? #:key key))
+  
+  (check-best l <  1 1 2)
+  (check-best l <= 1 1 8)
+  (check-best l >  1 -1 2 #:key -)
+  (check-best l >= 1 -1 8 #:key -)
+
+  (check-best l >  7 7 6)
+  (check-best l >= 7 7 10)
+  (check-best l <  7 -7 6 #:key -)
+  (check-best l <= 7 -7 10 #:key -)
+
+  (check-best l < 3 0 0 #:key (λ (x) (abs (- x 3))))
+  (check-best l <= 3 0 4 #:key (λ (x) (abs (- x 3)))))
+
 ;; ---------- take/drop/splt-at[-right] ----------
 (let ()
   (define (vals f)
