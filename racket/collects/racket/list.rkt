@@ -60,10 +60,17 @@
          group-by
          cartesian-product
          remf
-         remf*)
+         remf*
+
+         ;; for loops
+         for/append-list
+         for/append-lists
+         for*/append-list
+         for*/append-lists)
 
 (require (for-syntax racket/base)
-         racket/private/list-predicates)
+         racket/private/list-predicates
+         racket/private/for-append-list)
 
 (define (first x)
   (if (and (pair? x) (list? x))
