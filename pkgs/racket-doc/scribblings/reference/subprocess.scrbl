@@ -125,7 +125,7 @@ explicitly closed, usually with @racket[close-input-port] or
 @racket[close-output-port].
 
 @margin-note{A @tech{file-stream port} for communicating with a
-subprocess is normally a pipe with a limited capacity. Beware of
+subprocess is normally a pipe with a limited buffer capacity. Beware of
 creating deadlock by serializing a write to a subprocess followed by a
 read, while the subprocess does the same, so that both processes end
 up blocking on a write because the other end must first read to make
@@ -190,6 +190,9 @@ Example:
 (close-input-port err)
 (subprocess-wait sp)
 ]
+
+@; PLACEHOLDER: maybe explain here that subprocess-wait should be called
+@; after all the I/O to ensure the process is in a position to terminate?
 
 @history[#:changed "6.11.0.1" @elem{Added the @racket[group] argument.}
          #:changed "7.4.0.5" @elem{Added waiting for a fifo without a reader
@@ -458,6 +461,8 @@ function:
 (with-output-to-string (lambda () (system "date")))
 ]}
 
+@; PLACEHOLDER: add something explaining why system* is recommended instead
+@; (sorawee)
 
 @defproc*[([(system* [command path-string?]
                      [arg (or/c path? string-no-nuls? bytes-no-nuls?)] ...

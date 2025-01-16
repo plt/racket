@@ -30,7 +30,8 @@ on @racket[in] until it produces @racket[eof].
          string?]{
 
 Reads all characters from @racket[in] and returns them as a string.
-The input port is closed unless @racket[close?] is @racket[#f].
+If @racket[close?] is @racket[#t], then the input port is closed,
+otherwise, it is left open.
 
 @examples[#:eval port-eval
 (port->string (open-input-string "hello world"))

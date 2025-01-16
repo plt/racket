@@ -207,7 +207,9 @@ Suppresses the ``colon notation'' for annotated pattern variables.
 @defform[(syntax-parser parse-option ... clause ...+)]{
 
 Like @racket[syntax-parse], but produces a matching procedure. The
-procedure accepts a single argument, which should be a syntax object.
+procedure accepts a single argument, which should be a syntax
+object. The syntax object is accessible within the body of the form
+via @racket[this-syntax].
 }
 
 @defform[(define/syntax-parse syntax-pattern pattern-directive ... stx-expr)

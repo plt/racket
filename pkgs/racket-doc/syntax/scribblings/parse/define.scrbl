@@ -55,6 +55,10 @@ Defines a macro named @racket[macro-id]; equivalent to:
   (syntax-parser parse-option ... clause ...))
 ]
 
+This form does not explicitly mention the syntax object being parsed,
+but as in the case of any use of @racket[syntax-parse], you can access
+it via @racket[this-syntax].
+
 @examples[#:eval the-eval
 (define-syntax-parser fn3
   [(fn3 x:id rhs:expr)
