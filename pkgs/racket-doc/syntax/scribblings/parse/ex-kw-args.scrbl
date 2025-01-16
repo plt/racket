@@ -99,6 +99,27 @@ If the second subtemplate of a @racket[~?] template is
 @racket[(~@)]---that is, it produces no terms at all---the second
 subtemplate can be omitted.
 
+@section{Optional Keyword Arguments as flags}
+
+Sometimes, you want your keywords to express an information by their presence,
+without the need for an associated value.
+
+@interaction[#:eval the-eval
+(define-syntax (mycond stx)
+  (syntax-parse stx
+    [(mycond (~optional (~and error? #:error-on-fallthrough))
+             clause ...)
+     #:with fallthrough (if (attribute error?)
+                            #'([else (error 'failure "no clause matched")])
+                            #'())
+     #'(cond clause ... (~@ . fallthrough))]))
+]
+
+@racket[~and] is useful for that: it binds a pattern to an attribute by
+examining the structure of the term in place.
+
+The tricky part here is that we don't want to generate any code when the
+keyword is absent, hence the use of @racket[~@] to splice an empty list.
 
 @section{Optional Arguments with @racket[define-splicing-syntax-class]}
 
