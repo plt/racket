@@ -1,5 +1,7 @@
 #lang scribble/doc
-@(require "utils.rkt" (for-label ffi/unsafe/atomic))
+@(require "utils.rkt"
+          (for-label ffi/unsafe/atomic
+                     ffi/unsafe/try-atomic))
 
 @title{Atomic Execution}
 
@@ -11,11 +13,16 @@ computation in this sense is @emph{not} atomic with respect to other
 @tech[#:doc reference.scrbl]{places}, but only to other @tech[#:doc
 reference.scrbl]{threads} within a place.
 
-@elemtag["atomic-unsafe"]{Atomic mode is @bold{unsafe}}, because the
+@elemtag["atomic-unsafe"]{Atomic mode} is @tech[#:doc reference.scrbl]{unsafe}, because the
 Racket scheduler is not able to operate while execution is in atomic
-mode; the scheduler cannot switch threads or poll certain kinds of
-events, which can lead to deadlock or starvation of other threads.
-Beware that many operations can involve such synchronization, such as
+mode: (1) the scheduler cannot switch threads or poll certain kinds of
+events, which can lead to deadlock or starvation of other threads; and
+(2) calling a scheduler-related function in atomic mode has unspecified
+behavior, where misuse is not necessarily caught with a check.
+Functions that are directly scheduler-related include @racket[thread],
+@racket[sleep], @racket[semaphore-wait], @racket[semaphore-post],
+@racket[channel-put], @racket[channel-get], and @racket[sync].
+Beware that other operations can involve such synchronization, such as
 writing to an output port. Even if an output target is known to be
 free of synchronization, beware that values can have arbitrary
 printing procedures attached through @racket[prop:custom-write].
@@ -58,6 +65,7 @@ exiting atomic mode, and it wraps any call to the error value
 conversion handler with @racket[call-as-nonatomic]. The latter is safe
 for a particular atomic region, however, only if the region can be
 safely interrupted by a non-atomic exception construction.
+See also @racket[call-as-nonatomic-retry-point].
 
 Unlike @racket[call-as-atomic], @racket[start-atomic] and
 @racket[end-atomic] can be called from any OS thread as supported by
