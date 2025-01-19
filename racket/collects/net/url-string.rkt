@@ -274,7 +274,12 @@
     (map separate-params (if (string=? "" (car strs)) (cdr strs) strs))))
 
 (define (separate-params s)
-  (let ([lst (map path-segment-decode (regexp-split #rx";" s))])
+  (let ([lst (map path-segment-decode
+                  (regexp-split
+                   (if (memq (current-alist-separator-mode) '(semi semi-or-amp))
+                       #rx";"
+                       #rx"&")
+                   s))])
     (make-path/param (car lst) (cdr lst))))
 
 (define (path-segment-decode p)
