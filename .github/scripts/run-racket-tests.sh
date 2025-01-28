@@ -28,23 +28,22 @@ do_test() {
 # ~~~~~~~~~~~~~~~~
 # Tests where `raco test` can discover and run all the tests.
 
-COLLECTIONS_TO_TEST=$(cat <<EOF
-tests/file
-tests/future
-tests/generic
-tests/json
-tests/match
-tests/net
-tests/setup
-tests/stxparse
-tests/syntax
-tests/units
-tests/utils
-tests/xml
-EOF
-                   )
+COLLECTIONS_TO_TEST=(
+  tests/file
+  tests/future
+  tests/generic
+  tests/json
+  tests/match
+  tests/net
+  tests/setup
+  tests/stxparse
+  tests/syntax
+  tests/units
+  tests/utils
+  tests/xml
+)
 
-for collection in $COLLECTIONS_TO_TEST; do
+for collection in "${COLLECTIONS_TO_TEST[@]}"; do
     echo " == Testing collection '$collection'"
     do_test -c "$collection"
 done
@@ -54,15 +53,14 @@ done
 # ~~~~~~~~~~~~
 # Tests where a central module controls what gets tested.
 
-MODULES_TO_TEST=$(cat <<EOF
-tests/db/all-tests
-tests/openssl/basic
-tests/openssl/https
-tests/zo-path
-EOF
-               )
+MODULES_TO_TEST=(
+  tests/db/all-tests
+  tests/openssl/basic
+  tests/openssl/https
+  tests/zo-path
+)
 
-for mpath in $MODULES_TO_TEST; do
+for mpath in "${MODULES_TO_TEST[@]}"; do
     echo " == Testing module path '$mpath'"
     do_test -l "$mpath"
 done
