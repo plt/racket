@@ -35,13 +35,13 @@
 
 (define INITIAL-SINGLE-VALUE-FUEL 16)
 
-(define (single-valued-lambda? lam knowns prim-knowns imports mutated)
+(define (single-valued-lambda? lam knowns prim-knowns imports mutated [fuel INITIAL-SINGLE-VALUE-FUEL])
   (match lam
     [`(lambda ,_ . ,body)
-     (single-valued-body? body knowns prim-knowns imports mutated INITIAL-SINGLE-VALUE-FUEL)]
+     (single-valued-body? body knowns prim-knowns imports mutated fuel)]
     [`(case-lambda [,_ . ,bodys] ...)
      (for/and ([body (in-list bodys)])
-       (single-valued-body? body knowns prim-knowns imports mutated INITIAL-SINGLE-VALUE-FUEL))]
+       (single-valued-body? body knowns prim-knowns imports mutated fuel))]
     [`,_ #f]))
 
 (define (single-valued-body? body knowns prim-knowns imports mutated fuel)
@@ -52,6 +52,14 @@
        (single-valued? (car body) knowns prim-knowns imports mutated fuel)]
       [else
        (loop (cdr body) (fx- fuel 1))])))
+
+(define (single-valued-call? proc knowns prim-knowns imports mutated)
+  (let ([proc (unwrap proc)])
+    (and (symbol? proc)
+	 (let ([v (or (hash-ref-either knowns imports proc)
+		      (hash-ref prim-knowns proc #f))])
+	   (known-procedure/single-valued? v))
+	 (simple-mutated-state? (hash-ref mutated proc #f)))))
 
 (define (single-valued? e knowns prim-knowns imports mutated fuel)
   (cond
@@ -86,11 +94,10 @@
              (single-valued? els knowns prim-knowns imports mutated (fxrshift fuel 1)))]
        [`(#%app/value . ,_) #t]
        [`(#%app/no-return . ,_) #t]
+       [`(call-with-values ,_ ,recv)
+	(single-valued-lambda? recv knowns prim-knowns imports mutated (fx- fuel 1))]
        [`(,proc . ,args)
-        (let ([proc (unwrap proc)])
-          (and (symbol? proc)
-               (let ([v (or (hash-ref-either knowns imports proc)
-                            (hash-ref prim-knowns proc #f))])
-                 (known-procedure/single-valued? v))
-               (simple-mutated-state? (hash-ref mutated proc #f))))]
+	(single-valued-call? (unwrap proc) knowns prim-knowns imports mutated)]
+       [`(apply ,proc . ,args)
+	(single-valued-call? (unwrap proc) knowns prim-knowns imports mutated)]
        [`,_ #t])]))

@@ -835,6 +835,13 @@
 		     [`(case-lambda [(,id) ,body] . ,_)
 		      `(let ([,id  ,(schemify `(,generator) 'fresh)])
                          ,(schemify body 'fresh))]
+		     [`(lambda ,id (apply ,fun ,id2))
+		      ;; it would be nice to generalize this to
+		      ;; arbitrary numbers of arguments to apply
+		      (and (symbol? id)
+			   (eq? id id2)
+			   `(let ([,id  ,(schemify `(,generator) 'fresh)])
+			      (,(schemify fun 'fresh) ,id)))]
 		     [`,_ #f]))] ;; no rhs, just returns match result
               [(and (lambda? generator)
                     (or (lambda? receiver)
