@@ -60,15 +60,33 @@
 
   ;; date->msdos-time : date -> msdos-time
   (define (date->msdos-time date round-down?)
-    (bitwise-ior (arithmetic-shift (+ (if round-down? 0 1) (date-second date)) -1)
-                 (arithmetic-shift (date-minute date) 5)
-                 (arithmetic-shift (date-hour date) 11)))
+    (define-values (h m s)
+      ;; Zip cannot represent timestamps before 1980-01-01T00:00:00
+      (cond
+        [(< (date-year date) 1980)
+         (values 0 0 0)]
+        [(> (date-year date) 2107)
+         (values 23 59 59)]
+        [else
+         (values (date-hour date) (date-minute date) (date-second date))]))
+    (bitwise-ior (arithmetic-shift (+ (if round-down? 0 1) s) -1)
+                 (arithmetic-shift m 5)
+                 (arithmetic-shift h 11)))
 
   ;; date->msdos-date : date -> msdos-date
   (define (date->msdos-date date)
-    (bitwise-ior (date-day date)
-                 (arithmetic-shift (date-month date) 5)
-                 (arithmetic-shift (- (date-year date) 1980) 9)))
+    (define-values (y m d)
+      ;; Zip cannot represent timestamps before 1980-01-01T00:00:00
+      (cond
+        [(< (date-year date) 1980)
+         (values 1980 1 1)]
+        [(> (date-year date) 2107)
+         (values 2107 12 31)]
+        [else
+         (values (date-year date) (date-month date) (date-day date))]))
+    (bitwise-ior d
+                 (arithmetic-shift m 5)
+                 (arithmetic-shift (- y 1980) 9)))
 
   ;; seekable-port? : port -> boolean
   (define (seekable-port? port)

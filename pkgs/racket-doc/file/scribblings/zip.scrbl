@@ -46,6 +46,9 @@ Timestamps in @exec{zip} archives are precise only to two seconds; by
 default, the time is rounded toward the future (like WinZip or PKZIP),
 but time is rounded toward the past (like Java) if
 @racket[round-timestamps-down?]  is true.
+The @exec{zip} archive format only supports timestamps between January 1,
+1980 and December 31, 2107. Timestamps outside of this range will be
+clamped to the closest representable timestamp.
 
 The @racket[sys-type] argument determines the system type recorded in
 the archive.
