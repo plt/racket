@@ -29,10 +29,8 @@
          parameter/c
          procedure-arity-includes/c
          
-         any/c named-any/c
-         any
-         none/c
-         make-none/c
+         make-any/c any make-none/c
+         (rename-out [_any/c any/c] [_none/c none/c])
 
          prompt-tag/c
          continuation-mark-key/c
@@ -691,8 +689,16 @@
                           n))
   (make-procedure-arity-includes/c n))
 
-(define (get-any? c) any?)
-(define (any? x) #t)
+(define (any/c-flat-contract-property get-name)
+  (build-flat-contract-property
+   #:trusted trust-me
+   #:late-neg-projection (λ (ctc) any/c-blame->neg-party-fn)
+   #:stronger (λ (this that) (prop:any/c? that))
+   #:equivalent (λ (this that) (prop:any/c? that))
+   #:name get-name
+   #:generate any/c-random-generate
+   #:first-order get-any?))
+
 (define any/c-blame->neg-party-fn (λ (blame) any/c-neg-party-fn))
 (define any/c-neg-party-fn (λ (val neg-party) val))
 
@@ -751,33 +757,18 @@
   (λ () (random-any/c env fuel)))
 
 (define-struct any/c ()
-  #:property prop:custom-write custom-write-property-proc
-  #:omit-define-syntaxes
-  #:property prop:any/c #f
-  #:property prop:flat-contract
-  (build-flat-contract-property
-   #:trusted trust-me
-   #:late-neg-projection (λ (ctc) any/c-blame->neg-party-fn)
-   #:stronger (λ (this that) (prop:any/c? that))
-   #:equivalent (λ (this that) (prop:any/c? that))
-   #:name (λ (ctc) 'any/c)
-   #:generate any/c-random-generate
-   #:first-order get-any?))
-
-(define/final-prop any/c (make-any/c))
-
-(define-struct named-any/c (name)
+  #:constructor-name any/c
   #:property prop:custom-write custom-write-property-proc
   #:property prop:any/c #f
   #:property prop:flat-contract
-  (build-flat-contract-property
-   #:trusted trust-me
-   #:late-neg-projection (λ (ctc) any/c-blame->neg-party-fn)
-   #:stronger (λ (this that) (prop:any/c? that))
-   #:equivalent (λ (this that) (prop:any/c? that))
-   #:name (λ (ctc) (named-any/c-name ctc))
-   #:generate any/c-random-generate
-   #:first-order get-any?))
+  (any/c-flat-contract-property (λ (ctc) 'any/c)))
+
+(define/final-prop _any/c (let ([any/c (any/c)]) any/c))
+
+(define-struct (named-any/c any/c) (name)
+  #:constructor-name make-any/c
+  #:property prop:flat-contract
+  (any/c-flat-contract-property (λ (ctc) (named-any/c-name ctc))))
 
 (define-syntax (any stx)
   (raise-syntax-error 'any "use of 'any' outside the range of an arrow contract" stx))
@@ -792,17 +783,17 @@
 
 (define-struct none/c (name)
   #:property prop:custom-write custom-write-property-proc
-  #:omit-define-syntaxes
+  #:property prop:none/c #f
   #:property prop:flat-contract
   (build-flat-contract-property
    #:trusted trust-me
    #:late-neg-projection none-curried-late-neg-proj
    #:stronger (λ (this that) #t)
-   #:equivalent (λ (this that) (none/c? that))
+   #:equivalent (λ (this that) (prop:none/c? that))
    #:name (λ (ctc) (none/c-name ctc))
-   #:first-order (λ (ctc) (λ (val) #f))))
+   #:first-order get-none?))
 
-(define/final-prop none/c (make-none/c 'none/c))
+(define/final-prop _none/c (let ([none/c (make-none/c 'none/c)]) none/c))
 
 ;; prompt-tag/c
 (define-syntax prompt-tag/c

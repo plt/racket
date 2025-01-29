@@ -1,9 +1,9 @@
 #lang racket/base
 (provide types)
 (define types
-  (hash '(real-and/c-name racket/contract/private/misc)
+  (hash '(and/c-name racket/contract/private/and)
         '(->* () #:rest Contract Contract)
-        
+
         '(or/c-name racket/contract/private/orc)
         '(->* () #:rest Contract Contract)))
 
