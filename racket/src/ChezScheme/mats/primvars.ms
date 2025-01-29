@@ -422,6 +422,7 @@
               [(sub-ftype-pointer) no-good]
               [(fxvector) '#vfx(0) "a" #f]
               [(flvector) '#vfl(0.0) "a" #f]
+              [(format-condition) (make-format-condition "hello") (make-who-condition 'who) 'a #f]
               [(gensym) *genny 'sym #f]
               [(guardian) (make-guardian) values "oops" #f]
               [(hashtable) *eq-hashtable '((a . b)) #f]

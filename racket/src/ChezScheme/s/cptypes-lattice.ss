@@ -432,6 +432,12 @@
                           [else
                            (loop lo i)]))]))]))]))
 
+  ;ignores #!base-rtd
+  (define (rtd-top x)
+    (vector-ref (rtd-ancestry x) 1))
+
+  (define condition-pred (make-pred-$record/rtd (rtd-top (record-rtd (make-who-condition 'me)))))
+
   ; nqm: no question mark
   ; Transform the types used in primdata.ss
   ; to the internal representation used here
@@ -576,6 +582,11 @@
       [$record '$record]
       [(record rtd) '(bottom . $record)] ; not sealed
       [(maybe-rtd) (cons false-rec maybe-$record-pred)]
+      [(condition condition-object) condition-pred]
+      [(continuation-condition irritants-condition message-condition source-condition who-condition) '(bottom . $record)]
+      [(syntax-violation) '(bottom . $record)]
+      [(i/o-invalid-position-error i/o-filename-error) '(bottom . $record)]
+      [(sub-condition) '(bottom . $record)]
       [(transcoder) '(bottom . $record)]  ; opaque, sealed
       [(maybe-transcoder) (cons false-rec maybe-$record-pred)]
       [(rcd sfd timeout) '(bottom . $record)] ; not opaque, sealed
