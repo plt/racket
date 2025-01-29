@@ -9,6 +9,7 @@
          curry   curryr
          conjoin disjoin
          negate
+         get-failure-result
          (all-from-out racket/private/arity))
 
 (define (identity x) x)
@@ -48,6 +49,15 @@
       [(1) (lambda (x) (not (f x)))]
       [(2) (lambda (x y) (not (f x y)))]
       [else (compose1 not f)]))) ; keyworded or more args => just compose
+
+(define (get-failure-result v)
+  (if (procedure? v)
+      (if (procedure-arity-includes? v 0)
+          (v)
+          (raise-argument-error 'get-failure-result
+                                "a procedure that accepts 0 non-keyword arguments"
+                                v))
+      v))
 
 (define (make-curry right?)
   ; arity-mask? -> (or/c exact-nonnegative-integer? +inf.0 #f)

@@ -1,5 +1,5 @@
 #lang racket/base
-(require racket/bool racket/function rackunit)
+(require racket/bool rackunit)
 
 (check-true true)
 (check-false false)
@@ -41,13 +41,3 @@
 (check-equal? (xor 11 #f) 11)
 (check-equal? (xor #f 22) 22)
 (check-equal? (xor #f #f) #f)
-
-(check-true ((conjoin) 'x #:y 'z)) ; no function
-(check-true ((conjoin integer? exact?) 1))
-(check-false ((conjoin integer? exact?) 1.0))
-(check-false ((conjoin integer? exact?) 0.5))
-
-(check-false ((disjoin) 'x #:y 'z)) ; no function
-(check-true ((disjoin integer? exact?) 1))
-(check-true ((disjoin integer? exact?) 1/2))
-(check-false ((disjoin integer? exact?) 0.5))

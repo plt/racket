@@ -3788,7 +3788,7 @@ currently being checked.
 
 @defthing[failure-result/c contract?]{
   A contract that describes the failure result arguments of procedures
-  such as @racket[hash-ref].
+  such as @racket[hash-ref]. See also @racket[get-failure-result].
 
   Equivalent to @racket[(if/c procedure? (-> any) any/c)].
 

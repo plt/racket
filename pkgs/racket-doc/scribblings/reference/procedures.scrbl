@@ -909,5 +909,20 @@ arguments that procedures with arity @racket[b] accept.
 
 }
 
+@defproc[(get-failure-result [v failure-result/c]) any]{
+
+If @racket[v] is a procedure, it is applied in @tech{tail position} to zero
+arguments to produce a result. Otherwise, @racket[v] is returned.
+
+The @racket[get-failure-result] function can be used to extract the value of
+failure result arguments passed to procedures such as @racket[hash-ref].
+
+@mz-examples[#:eval fun-eval
+(eval:check (get-failure-result 1) 1)
+(eval:check (get-failure-result (lambda () 2)) 2)
+(get-failure-result (lambda () (values 3 4)))]
+
+@history[#:added "8.11.1.4"]}
+
 
 @close-eval[fun-eval]
