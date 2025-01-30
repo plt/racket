@@ -16,13 +16,27 @@
   (provide build-kmp-table))
 
 
+;; TODO: What are the semantics if the strings themselves are changed during the execution?
+(define (string-append*-one-arg strs)
+  ;; TODO How to format error message? Do we need to do it up a level when we have more info?
+  (unless (and (list? strs) (andmap string? strs))
+    (raise-argument-error 'string-append* "(listof string?)" strs))
+
+  (define len (for/sum ([str (in-list strs)]) (string-length str)))
+  (define acc (make-string len))
+  (for/fold ([offset 0]) ([str (in-list strs)])
+    (string-copy! acc offset str)
+    (+ offset (string-length str)))
+  acc)
+
 (define string-append*
-  (case-lambda [(strs) (apply string-append strs)] ; optimize common cases
-               [(s1 strs) (apply string-append s1 strs)]
-               [(s1 s2 strs) (apply string-append s1 s2 strs)]
-               [(s1 s2 s3 strs) (apply string-append s1 s2 s3 strs)]
-               [(s1 s2 s3 s4 strs) (apply string-append s1 s2 s3 s4 strs)]
-               [(str . strss) (apply apply string-append str strss)]))
+  (case-lambda 
+    [(strs) (string-append*-one-arg strs)] ; optimize common cases
+    [(s1 strs) (string-append*-one-arg (list* s1 strs))]
+    [(s1 s2 strs) (string-append*-one-arg (list* s1 s2 strs))]
+    [(s1 s2 s3 strs) (string-append*-one-arg (list* s1 s2 s3 strs))]
+    [(s1 s2 s3 s4 strs) (string-append*-one-arg (list* s1 s2 s3 s4 strs))]
+    [(str . strss) (string-append*-one-arg (apply list* str strss))]))
 
 (require (only-in racket/list add-between)
          (only-in racket/unsafe/undefined [unsafe-undefined none]))
