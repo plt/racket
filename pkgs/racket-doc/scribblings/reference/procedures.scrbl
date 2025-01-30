@@ -33,7 +33,9 @@ arguments; otherwise, the @exnraise[exn:fail:contract]. The given
 ]}
 
 @deftogether[(@defproc[(compose  [proc procedure?] ...) procedure?]
-              @defproc[(compose1 [proc procedure?] ...) procedure?])]{
+              @defproc[(compose1 [proc procedure?] ...) procedure?]
+              @defproc[(∘  [proc procedure?] ...) procedure?]
+              @defproc[(∘₁ [proc procedure?] ...) procedure?])]{
 
 Returns a procedure that composes the given functions, applying the last
 @racket[proc] first and the first @racket[proc] last.  The @racket[compose] function
@@ -44,6 +46,9 @@ a single value.  In both cases, the input arity of the last function and
 the output arity of the first are unrestricted, and they become the
 corresponding arity of the resulting composition (including keyword
 arguments for the input side).
+
+@racket[∘] and @racket[∘₁] are aliases for @racket[compose] and @racket[compose1]
+respectively.
 
 When no @racket[proc] arguments are given, the result is
 @racket[values].  When exactly one is given, it is returned.

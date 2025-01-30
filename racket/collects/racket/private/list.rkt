@@ -32,8 +32,8 @@
 
            reverse
 
-           compose
-           compose1)
+           compose  (rename-out [compose ∘])
+           compose1 (rename-out [compose ∘₁]))
 
   (#%require (rename "sort.rkt" raw-sort sort)
              (for-syntax "stxcase-scheme.rkt")
