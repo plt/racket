@@ -15,6 +15,8 @@
 @; For `history` to connect to the "compiler-lib" package:
 @declare-exporting[compiler/commands/test]
 
+Usage: raco test @nonterm{option} ... @nonterm{file-or-directory-or-collects-or-pkgs} ...
+
 The @exec{raco test} command requires and runs the (by default)
 @racket[test] submodule associated with each path given on the command
 line. Command-line flags can control which submodule is run, whether to
