@@ -560,6 +560,16 @@ sandbox. The default value of the parameter is @racket[#t].
 Various aspects of the library change when the GUI library is
 available, such as using a new eventspace for each evaluator.}
 
+@defboolparam[sandbox-gui-yield? yield? #:value #f]{
+
+Determines whether the evaluator thread handles GUI events between sandbox
+interactions. If the value is @racket[#f], then any GUI windows created in the
+evaluator's initial eventspace will be unresponsive unless the evaluator is
+instructed to handle events by calling @racket[yield] or @racket[sleep/yield].
+
+The default value is @racket[#f] for backwards compatibility.
+
+@history[#:added "8.5.0.8"]}
 
 @defparam[sandbox-override-collection-paths paths (listof path-string?)]{
 

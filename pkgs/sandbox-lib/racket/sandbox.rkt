@@ -13,6 +13,7 @@
 
 (provide gui?
          sandbox-gui-available
+         sandbox-gui-yield?
          sandbox-init-hook
          sandbox-reader
          sandbox-input
@@ -74,6 +75,10 @@
   (syntax-rules ()
     [(mz/mr mzval mrsym)
      (if (sandbox-gui-available) (gui-dynamic-require 'mrsym) mzval)]))
+
+;; When this parameter is #t, the evaluator thread (an eventspace handler
+;; thread) handles events while waiting for things to evaluate.
+(define sandbox-gui-yield? (make-parameter #f (lambda (v) (and v #t))))
 
 ;; Configuration ------------------------------------------------------------
 
@@ -888,7 +893,7 @@
     (when raise? (raise terminated?)))
   (define (user-break)
     (when user-thread (break-thread user-thread)))
-  (define (user-process)
+  (define (user-process sync/yield)
     (define break-paramz (current-break-parameterization))
     (parameterize-break
      #f ;; disable breaks during administrative work
@@ -915,7 +920,7 @@
      ;; finally wait for interaction expressions
      (define n 0)
      (let loop ()
-       (define expr (channel-get input-ch))
+       (define expr (sync/yield input-ch))
        (when (eof-object? expr)
          (terminated! 'eof) (channel-put result-ch expr) (user-kill))
        (with-handlers ([void (lambda (exn)
@@ -1205,7 +1210,8 @@
                                (lambda (ignored)
                                  ((mz/mr void eventspace-handler-thread) (current-eventspace)))
                                 values))
-    (define t (bg-run->thread (run-in-bg user-process)))
+    (define sync/yield (if (sandbox-gui-yield?) (mz/mr sync yield) sync))
+    (define t (bg-run->thread (run-in-bg (lambda () (user-process sync/yield)))))
     (set! user-done-evt (handle-evt t (lambda (_) (terminate+kill! #t #t))))
     (set! user-thread t)))
   (define r (get-user-result))
